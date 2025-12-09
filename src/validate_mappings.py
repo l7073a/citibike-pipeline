@@ -71,7 +71,7 @@ def validate_mappings(
             start_station_id,
             start_station_name,
             start_lat,
-            start_lng,
+            start_lon,
             start_match_type,
             source_file
         FROM '{pattern}'
@@ -89,7 +89,7 @@ def validate_mappings(
             -- 111139 meters per degree at NYC latitude
             SQRT(
                 POWER((t.start_lat - c.legacy_lat) * 111139, 2) +
-                POWER((t.start_lng - c.legacy_lon) * 111139 * COS(RADIANS(40.7)), 2)
+                POWER((t.start_lon - c.legacy_lon) * 111139 * COS(RADIANS(40.7)), 2)
             ) as distance_m
         FROM trips t
         LEFT JOIN crosswalk c ON t.start_station_id = c.modern_id
@@ -105,7 +105,7 @@ def validate_mappings(
             start_station_id as canonical_id,
             start_station_name as canonical_name,
             start_lat as canonical_lat,
-            start_lng as canonical_lon,
+            start_lon as canonical_lon,
             start_match_type as match_type,
             COUNT(*) as trip_count,
             MEDIAN(distance_m) as median_distance_m,
@@ -117,7 +117,7 @@ def validate_mappings(
         FROM with_legacy
         WHERE legacy_id IS NOT NULL
         GROUP BY legacy_id, legacy_name, legacy_lat, legacy_lon,
-                 start_station_id, start_station_name, start_lat, start_lng, start_match_type
+                 start_station_id, start_station_name, start_lat, start_lon, start_match_type
     )
     SELECT * FROM station_stats
     ORDER BY median_distance_m DESC

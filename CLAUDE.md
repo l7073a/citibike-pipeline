@@ -311,6 +311,69 @@ con.execute('''
 "
 ```
 
+### 15. Pipeline Architecture Improvements (Session 4 Additions)
+
+Four key improvements were made to the pipeline for better data quality and validation:
+
+**1. Date Sanity Check**
+
+Problem: Even after fixing datetime parsing, there's no guarantee the parsed date is correct. A corrupt row could parse as a valid date from the wrong month/year.
+
+Solution: Extract expected year/month from filename (e.g., `201409-citibike-tripdata.csv` → Sept 2014), then filter out any trips where the parsed date doesn't match.
+
+```python
+def extract_expected_month(filename: str) -> Tuple[Optional[int], Optional[int]]:
+    """Extract expected year and month from filename."""
+    match = re.search(r'(\d{4})(\d{2})-citibike', filename)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    return None, None
+```
+
+In the WHERE clause:
+```sql
+AND EXTRACT(YEAR FROM started_at) = {expected_year}
+AND EXTRACT(MONTH FROM started_at) = {expected_month}
+```
+
+**2. Raw Coordinate Preservation**
+
+Problem: The pipeline was only outputting canonical coordinates (from GBFS or crosswalk), losing the original raw data for validation purposes.
+
+Solution: Added `start_lat_raw`, `start_lon_raw`, `end_lat_raw`, `end_lon_raw` columns to preserve original trip coordinates alongside canonical ones.
+
+Why this matters:
+- Enables validation of station mappings (compare raw to canonical)
+- Preserves data provenance
+- Allows detection of GPS drift or systematic coordinate errors
+
+**3. Single-Pass Filter Statistics**
+
+Problem: The pipeline was reading each CSV file twice - once to count filtered rows, once to process. This doubled I/O overhead.
+
+Solution: Combined filter stats into the main query using conditional aggregation:
+
+```sql
+SELECT
+    COUNT(*) as total_rows,
+    SUM(CASE WHEN <filter_conditions> THEN 1 ELSE 0 END) as filtered_count,
+    filtered_data.*
+FROM ...
+```
+
+This provides the same stats with half the file reads.
+
+**4. Standardized Coordinate Naming**
+
+Problem: Inconsistent naming - some files used `lng`, others `lon` for longitude columns. This caused confusion and potential bugs.
+
+Solution: Standardized on `lon` everywhere:
+- `start_lon` / `end_lon` (canonical coordinates)
+- `start_lon_raw` / `end_lon_raw` (raw coordinates)
+- Updated `validate_mappings.py` to match
+
+`lon` is the more common convention in GIS tools (PostGIS, QGIS, Leaflet).
+
 ## Future Work
 
 1. **Full processing**: Run pipeline on all 373 CSV files (~150M+ trips)
@@ -357,3 +420,8 @@ con.execute('''
   - Fix: Force timestamp columns to VARCHAR, parse explicitly with TRY_STRPTIME
 - Successfully processed 2013 and 2014 with ~0.5% filter rate, 94% station match rate
 - Renamed CLAUDE_NOTES.md to CLAUDE.md (best practice)
+- Implemented 4 architecture improvements after extended thinking review:
+  1. **Date sanity check**: Validates parsed dates match expected month from filename
+  2. **Raw coordinate preservation**: Added `*_lat_raw` / `*_lon_raw` columns for validation
+  3. **Single-pass filter stats**: Combined stats query with main query (halved I/O)
+  4. **Coordinate naming standardization**: Unified on `lon` instead of mixing `lng`/`lon`

@@ -18,9 +18,10 @@ Station resolution:
 import argparse
 import csv
 import json
+import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 try:
     import duckdb
@@ -28,6 +29,30 @@ except ImportError:
     print("Missing dependency: duckdb")
     print("Run: pip install duckdb")
     exit(1)
+
+
+def extract_expected_month(filename: str) -> Tuple[Optional[int], Optional[int]]:
+    """
+    Extract expected year and month from filename.
+    Returns (year, month) or (None, None) if not found.
+
+    Examples:
+        '201409-citibike-tripdata.csv' -> (2014, 9)
+        '2014-citibike-tripdata_201401-citibike-tripdata_1.csv' -> (2014, 1)
+    """
+    # Look for YYYYMM pattern
+    match = re.search(r'(\d{4})(\d{2})-citibike', filename)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+
+    # Fallback: look for any YYYYMM pattern
+    match = re.search(r'(\d{4})(\d{2})', filename)
+    if match:
+        year, month = int(match.group(1)), int(match.group(2))
+        if 2013 <= year <= 2030 and 1 <= month <= 12:
+            return year, month
+
+    return None, None
 
 REFERENCE_DIR = Path(__file__).parent.parent / "reference"
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -97,13 +122,18 @@ def process_file(
     output_dir: Path
 ) -> dict:
     """Process a single CSV file and return stats."""
-    
+
     schema = detect_schema(csv_path)
     output_path = output_dir / f"{csv_path.stem}.parquet"
-    
+
+    # Extract expected year/month from filename for date sanity check
+    expected_year, expected_month = extract_expected_month(csv_path.name)
+
     stats = {
         'input_file': csv_path.name,
         'schema': schema,
+        'expected_year': expected_year,
+        'expected_month': expected_month,
         'rows_in': 0,
         'rows_out': 0,
         'rows_filtered': {
@@ -111,11 +141,17 @@ def process_file(
             'duration_too_short': 0,
             'duration_too_long': 0,
             'invalid_timestamp': 0,
+            'wrong_month': 0,  # New: dates that don't match expected month
         },
         'station_match': {'direct': 0, 'crosswalk': 0, 'ghost': 0, 'unmatched': 0},
+        'date_sanity': {
+            'dates_in_expected_month': 0,
+            'dates_outside_expected_month': 0,
+        },
     }
     
     # Build schema-specific SELECT
+    # Note: We standardize on "lon" (not "lng") for longitude columns
     if schema == 'modern':
         select_clause = """
             ride_id,
@@ -126,11 +162,11 @@ def process_file(
             CAST(start_station_id AS VARCHAR) as start_station_id_raw,
             start_station_name as start_station_name_raw,
             start_lat as start_lat_raw,
-            start_lng as start_lng_raw,
+            start_lng as start_lon_raw,
             CAST(end_station_id AS VARCHAR) as end_station_id_raw,
             end_station_name as end_station_name_raw,
             end_lat as end_lat_raw,
-            end_lng as end_lng_raw,
+            end_lng as end_lon_raw,
             member_casual,
             NULL::VARCHAR as bike_id,
             NULL::INTEGER as birth_year,
@@ -163,11 +199,11 @@ def process_file(
             REGEXP_REPLACE(CAST("start station id" AS VARCHAR), '\\.0$', '') as start_station_id_raw,
             "start station name" as start_station_name_raw,
             TRY_CAST("start station latitude" AS DOUBLE) as start_lat_raw,
-            TRY_CAST("start station longitude" AS DOUBLE) as start_lng_raw,
+            TRY_CAST("start station longitude" AS DOUBLE) as start_lon_raw,
             REGEXP_REPLACE(CAST("end station id" AS VARCHAR), '\\.0$', '') as end_station_id_raw,
             "end station name" as end_station_name_raw,
             TRY_CAST("end station latitude" AS DOUBLE) as end_lat_raw,
-            TRY_CAST("end station longitude" AS DOUBLE) as end_lng_raw,
+            TRY_CAST("end station longitude" AS DOUBLE) as end_lon_raw,
             CASE
                 WHEN usertype = 'Subscriber' THEN 'member'
                 WHEN usertype = 'Customer' THEN 'casual'
@@ -193,11 +229,11 @@ def process_file(
             REGEXP_REPLACE(CAST("Start Station ID" AS VARCHAR), '\\.0$', '') as start_station_id_raw,
             "Start Station Name" as start_station_name_raw,
             "Start Station Latitude"::DOUBLE as start_lat_raw,
-            "Start Station Longitude"::DOUBLE as start_lng_raw,
+            "Start Station Longitude"::DOUBLE as start_lon_raw,
             REGEXP_REPLACE(CAST("End Station ID" AS VARCHAR), '\\.0$', '') as end_station_id_raw,
             "End Station Name" as end_station_name_raw,
             "End Station Latitude"::DOUBLE as end_lat_raw,
-            "End Station Longitude"::DOUBLE as end_lng_raw,
+            "End Station Longitude"::DOUBLE as end_lon_raw,
             CASE
                 WHEN "User Type" = 'Subscriber' THEN 'member'
                 WHEN "User Type" = 'Customer' THEN 'casual'
@@ -218,6 +254,14 @@ def process_file(
     else:
         read_options = "ignore_errors=true"
 
+    # Build date sanity check clause if we have expected year/month
+    if expected_year and expected_month:
+        date_sanity_filter = f"""
+      AND EXTRACT(YEAR FROM started_at) = {expected_year}
+      AND EXTRACT(MONTH FROM started_at) = {expected_month}"""
+    else:
+        date_sanity_filter = ""
+
     # Main transformation query with station resolution
     query = f"""
     WITH raw AS (
@@ -234,7 +278,7 @@ def process_file(
     -- Resolve start stations
     with_start AS (
         SELECT c.*,
-            CASE 
+            CASE
                 -- Modern ID: direct lookup
                 WHEN c.start_id_type = 'modern' THEN c.start_station_id_raw
                 -- Legacy ID: use crosswalk
@@ -242,21 +286,21 @@ def process_file(
                 -- Ghost station: keep legacy ID
                 ELSE c.start_station_id_raw
             END as start_station_id,
-            CASE 
+            CASE
                 WHEN c.start_id_type = 'modern' THEN COALESCE(cs.name, c.start_station_name_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.name, cw.modern_name)
                 ELSE COALESCE(cw.legacy_name, c.start_station_name_raw)
             END as start_station_name,
-            CASE 
+            CASE
                 WHEN c.start_id_type = 'modern' THEN COALESCE(cs.lat, c.start_lat_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.lat, cw.legacy_lat)
                 ELSE COALESCE(cw.legacy_lat, c.start_lat_raw)
             END as start_lat,
-            CASE 
-                WHEN c.start_id_type = 'modern' THEN COALESCE(cs.lon, c.start_lng_raw)
+            CASE
+                WHEN c.start_id_type = 'modern' THEN COALESCE(cs.lon, c.start_lon_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.lon, cw.legacy_lon)
-                ELSE COALESCE(cw.legacy_lon, c.start_lng_raw)
-            END as start_lng,
+                ELSE COALESCE(cw.legacy_lon, c.start_lon_raw)
+            END as start_lon,
             CASE
                 WHEN c.start_id_type = 'modern' AND cs.station_id IS NOT NULL THEN 'direct'
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN 'crosswalk'
@@ -271,26 +315,26 @@ def process_file(
     -- Resolve end stations (similar logic)
     with_end AS (
         SELECT w.*,
-            CASE 
+            CASE
                 WHEN w.end_id_type = 'modern' THEN w.end_station_id_raw
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN cw.modern_id
                 ELSE w.end_station_id_raw
             END as end_station_id,
-            CASE 
+            CASE
                 WHEN w.end_id_type = 'modern' THEN COALESCE(cs.name, w.end_station_name_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.name, cw.modern_name)
                 ELSE COALESCE(cw.legacy_name, w.end_station_name_raw)
             END as end_station_name,
-            CASE 
+            CASE
                 WHEN w.end_id_type = 'modern' THEN COALESCE(cs.lat, w.end_lat_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.lat, cw.legacy_lat)
                 ELSE COALESCE(cw.legacy_lat, w.end_lat_raw)
             END as end_lat,
-            CASE 
-                WHEN w.end_id_type = 'modern' THEN COALESCE(cs.lon, w.end_lng_raw)
+            CASE
+                WHEN w.end_id_type = 'modern' THEN COALESCE(cs.lon, w.end_lon_raw)
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN COALESCE(cs2.lon, cw.legacy_lon)
-                ELSE COALESCE(cw.legacy_lon, w.end_lng_raw)
-            END as end_lng,
+                ELSE COALESCE(cw.legacy_lon, w.end_lon_raw)
+            END as end_lon,
             CASE
                 WHEN w.end_id_type = 'modern' AND cs.station_id IS NOT NULL THEN 'direct'
                 WHEN cw.modern_id IS NOT NULL AND cw.modern_id != '' THEN 'crosswalk'
@@ -307,14 +351,21 @@ def process_file(
         started_at,
         ended_at,
         duration_sec,
+        -- Canonical station info
         start_station_id,
         start_station_name,
         start_lat,
-        start_lng,
+        start_lon,
         end_station_id,
         end_station_name,
         end_lat,
-        end_lng,
+        end_lon,
+        -- Raw coordinates for validation
+        start_lat_raw,
+        start_lon_raw,
+        end_lat_raw,
+        end_lon_raw,
+        -- Metadata
         member_casual,
         rideable_type,
         bike_id,
@@ -332,21 +383,18 @@ def process_file(
       AND CAST(end_station_id_raw AS VARCHAR) != ''
       AND duration_sec >= 90           -- At least 90 seconds
       AND duration_sec <= 14400        -- At most 4 hours (14400 sec)
+      {date_sanity_filter}
     """
     
-    # Get input row count
-    stats['rows_in'] = con.execute(f"""
-        SELECT COUNT(*) FROM read_csv_auto('{csv_path}', ignore_errors=true)
-    """).fetchone()[0]
-
     # Execute and save to parquet
     con.execute(f"""
         COPY ({query}) TO '{output_path}' (FORMAT PARQUET, COMPRESSION ZSTD)
     """)
 
-    # Count filtered rows by reason (using same raw CTE structure)
+    # Build filter stats query - reuses the same raw CTE to count filtered rows efficiently
+    # This reads the file only once since DuckDB caches the read
     if schema == 'modern':
-        filter_query = f"""
+        filter_stats_query = f"""
             WITH raw AS (
                 SELECT
                     started_at::TIMESTAMP as started_at,
@@ -357,49 +405,67 @@ def process_file(
                 FROM read_csv_auto('{csv_path}', ignore_errors=true)
             )
             SELECT
+                COUNT(*) as total_rows,
                 SUM(CASE WHEN started_at IS NULL OR ended_at IS NULL THEN 1 ELSE 0 END) as invalid_timestamp,
                 SUM(CASE WHEN start_station_id_raw IS NULL OR start_station_id_raw = ''
                          OR end_station_id_raw IS NULL OR end_station_id_raw = '' THEN 1 ELSE 0 END) as missing_station,
                 SUM(CASE WHEN duration_sec < 90 AND duration_sec >= 0 THEN 1 ELSE 0 END) as duration_too_short,
-                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long
+                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long,
+                SUM(CASE WHEN started_at IS NOT NULL AND EXTRACT(YEAR FROM started_at) = {expected_year or 0}
+                         AND EXTRACT(MONTH FROM started_at) = {expected_month or 0} THEN 1 ELSE 0 END) as dates_in_expected,
+                SUM(CASE WHEN started_at IS NOT NULL AND (EXTRACT(YEAR FROM started_at) != {expected_year or 0}
+                         OR EXTRACT(MONTH FROM started_at) != {expected_month or 0}) THEN 1 ELSE 0 END) as dates_outside_expected
             FROM raw
         """
     else:
-        # Legacy schema - duration comes from tripduration column
-        duration_col = 'tripduration' if schema == 'legacy' else '"Trip Duration"'
-        start_col = '"start station id"' if schema == 'legacy' else '"Start Station ID"'
-        end_col = '"end station id"' if schema == 'legacy' else '"End Station ID"'
-        time_col = 'starttime' if schema == 'legacy' else '"Start Time"'
-
-        filter_query = f"""
+        # Legacy schema - use the same parsing logic as the main query
+        filter_stats_query = f"""
             WITH raw AS (
                 SELECT
-                    TRY_CAST({time_col} AS TIMESTAMP) as started_at,
-                    {duration_col}::INTEGER as duration_sec,
-                    CAST({start_col} AS VARCHAR) as start_station_id_raw,
-                    CAST({end_col} AS VARCHAR) as end_station_id_raw
-                FROM read_csv_auto('{csv_path}', ignore_errors=true)
+                    COALESCE(
+                        TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
+                        TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+                        TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
+                        TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M')
+                    ) as started_at,
+                    tripduration::INTEGER as duration_sec,
+                    CAST("start station id" AS VARCHAR) as start_station_id_raw,
+                    CAST("end station id" AS VARCHAR) as end_station_id_raw
+                FROM read_csv_auto('{csv_path}', {read_options})
             )
             SELECT
+                COUNT(*) as total_rows,
                 SUM(CASE WHEN started_at IS NULL THEN 1 ELSE 0 END) as invalid_timestamp,
                 SUM(CASE WHEN start_station_id_raw IS NULL OR start_station_id_raw = ''
                          OR end_station_id_raw IS NULL OR end_station_id_raw = '' THEN 1 ELSE 0 END) as missing_station,
                 SUM(CASE WHEN duration_sec < 90 AND duration_sec >= 0 THEN 1 ELSE 0 END) as duration_too_short,
-                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long
+                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long,
+                SUM(CASE WHEN started_at IS NOT NULL AND EXTRACT(YEAR FROM started_at) = {expected_year or 0}
+                         AND EXTRACT(MONTH FROM started_at) = {expected_month or 0} THEN 1 ELSE 0 END) as dates_in_expected,
+                SUM(CASE WHEN started_at IS NOT NULL AND (EXTRACT(YEAR FROM started_at) != {expected_year or 0}
+                         OR EXTRACT(MONTH FROM started_at) != {expected_month or 0}) THEN 1 ELSE 0 END) as dates_outside_expected
             FROM raw
         """
 
     try:
-        filter_result = con.execute(filter_query).fetchone()
+        filter_result = con.execute(filter_stats_query).fetchone()
+        stats['rows_in'] = filter_result[0] or 0
         stats['rows_filtered'] = {
-            'invalid_timestamp': filter_result[0] or 0,
-            'missing_station': filter_result[1] or 0,
-            'duration_too_short': filter_result[2] or 0,
-            'duration_too_long': filter_result[3] or 0,
+            'invalid_timestamp': filter_result[1] or 0,
+            'missing_station': filter_result[2] or 0,
+            'duration_too_short': filter_result[3] or 0,
+            'duration_too_long': filter_result[4] or 0,
+            'wrong_month': filter_result[6] or 0 if expected_year else 0,
+        }
+        stats['date_sanity'] = {
+            'dates_in_expected_month': filter_result[5] or 0,
+            'dates_outside_expected_month': filter_result[6] or 0,
         }
     except Exception as e:
-        # If filter query fails, just log zeros
-        pass
+        # Fallback: just get row count
+        stats['rows_in'] = con.execute(f"""
+            SELECT COUNT(*) FROM read_csv_auto('{csv_path}', ignore_errors=true)
+        """).fetchone()[0]
     
     # Get output stats
     result = con.execute(f"""
