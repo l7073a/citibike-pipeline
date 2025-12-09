@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-12-09T14:30:02.939977",
+  "files_processed": 1,
+  "total_rows_in": 0,
+  "total_rows_out": 0,
+  "file_stats": [
+    {
+      "input_file": "2013-citibike-tripdata_201306-citibike-tripdata.csv",
+      "error": "Conversion Error: Could not convert string 'NULL' to DOUBLE when casting from source column end station latitude\n\nLINE 21:             \"end station latitude\"::DOUBLE as end_lat_raw,\n                                           ^"
+    }
+  ]
+}

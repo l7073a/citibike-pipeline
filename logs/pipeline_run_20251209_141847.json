@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-12-09T14:18:47.108396",
+  "files_processed": 3,
+  "total_rows_in": 2024555,
+  "total_rows_out": 2016385,
+  "file_stats": [
+    {
+      "input_file": "202201-citibike-tripdata_202201-citibike-tripdata_1.csv",
+      "schema": "modern",
+      "rows_in": 1000000,
+      "rows_out": 993187,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 922469,
+        "ghost": 13197,
+        "unmatched": 57521
+      }
+    },
+    {
+      "input_file": "202201-citibike-tripdata_202201-citibike-tripdata_2.csv",
+      "schema": "modern",
+      "rows_in": 24555,
+      "rows_out": 24553,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 22707,
+        "ghost": 575,
+        "unmatched": 1271
+      }
+    },
+    {
+      "input_file": "202202-citibike-tripdata_202202-citibike-tripdata_1.csv",
+      "schema": "modern",
+      "rows_in": 1000000,
+      "rows_out": 998645,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 926369,
+        "ghost": 13850,
+        "unmatched": 58426
+      }
+    }
+  ]
+}

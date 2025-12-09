@@ -1,0 +1,298 @@
+{
+  "timestamp": "2025-12-09T14:15:53.420657",
+  "source_dir": "/Users/davidpiegaro/Citi Bike/citibike-pipeline/data/raw_zips",
+  "dest_dir": "/Users/davidpiegaro/Citi Bike/citibike-pipeline/data/raw_csvs",
+  "zip_files_processed": 2,
+  "csv_files_extracted": 48,
+  "total_approx_rows": 37920022,
+  "files": [
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201404-citibike-tripdata_1.csv",
+      "size_bytes": 110282909,
+      "approx_rows": 670780
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201412-citibike-tripdata_1.csv",
+      "size_bytes": 66014113,
+      "approx_rows": 399069
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201411-citibike-tripdata_1.csv",
+      "size_bytes": 87564769,
+      "approx_rows": 529188
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201407-citibike-tripdata_1.csv",
+      "size_bytes": 159457692,
+      "approx_rows": 968842
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201410-citibike-tripdata_1.csv",
+      "size_bytes": 137143404,
+      "approx_rows": 828711
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201409-citibike-tripdata_1.csv",
+      "size_bytes": 156002100,
+      "approx_rows": 953887
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201408-citibike-tripdata_1.csv",
+      "size_bytes": 158632885,
+      "approx_rows": 963489
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201406-citibike-tripdata_1.csv",
+      "size_bytes": 154324596,
+      "approx_rows": 936880
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201403-citibike-tripdata_1.csv",
+      "size_bytes": 72190478,
+      "approx_rows": 439117
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201401-citibike-tripdata_1.csv",
+      "size_bytes": 49335913,
+      "approx_rows": 300400
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201402-citibike-tripdata_1.csv",
+      "size_bytes": 36946111,
+      "approx_rows": 224736
+    },
+    {
+      "source_zip": "2014-citibike-tripdata.zip",
+      "csv_file": "2014-citibike-tripdata_201405-citibike-tripdata_1.csv",
+      "size_bytes": 142558266,
+      "approx_rows": 866117
+    },
+    {
+      "source_zip": "202209-citibike-tripdata.zip",
+      "csv_file": "202209-citibike-tripdata_202209-citibike-tripdata_4.csv",
+      "size_bytes": 80508418,
+      "approx_rows": 411866
+    },
+    {
+      "source_zip": "202209-citibike-tripdata.zip",
+      "csv_file": "202209-citibike-tripdata_202209-citibike-tripdata_1.csv",
+      "size_bytes": 195501759,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202209-citibike-tripdata.zip",
+      "csv_file": "202209-citibike-tripdata_202209-citibike-tripdata_2.csv",
+      "size_bytes": 195838414,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202209-citibike-tripdata.zip",
+      "csv_file": "202209-citibike-tripdata_202209-citibike-tripdata_3.csv",
+      "size_bytes": 196480293,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202201-citibike-tripdata.zip",
+      "csv_file": "202201-citibike-tripdata_202201-citibike-tripdata_2.csv",
+      "size_bytes": 4719069,
+      "approx_rows": 24555
+    },
+    {
+      "source_zip": "202201-citibike-tripdata.zip",
+      "csv_file": "202201-citibike-tripdata_202201-citibike-tripdata_1.csv",
+      "size_bytes": 194571711,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202203-citibike-tripdata.zip",
+      "csv_file": "202203-citibike-tripdata_202203-citibike-tripdata_2.csv",
+      "size_bytes": 165146157,
+      "approx_rows": 845965
+    },
+    {
+      "source_zip": "202203-citibike-tripdata.zip",
+      "csv_file": "202203-citibike-tripdata_202203-citibike-tripdata_1.csv",
+      "size_bytes": 195314852,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202205-citibike-tripdata.zip",
+      "csv_file": "202205-citibike-tripdata_202205-citibike-tripdata_3.csv",
+      "size_bytes": 168857678,
+      "approx_rows": 865425
+    },
+    {
+      "source_zip": "202205-citibike-tripdata.zip",
+      "csv_file": "202205-citibike-tripdata_202205-citibike-tripdata_2.csv",
+      "size_bytes": 195841534,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202205-citibike-tripdata.zip",
+      "csv_file": "202205-citibike-tripdata_202205-citibike-tripdata_1.csv",
+      "size_bytes": 195910701,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202207-citibike-tripdata.zip",
+      "csv_file": "202207-citibike-tripdata_202207-citibike-tripdata_2.csv",
+      "size_bytes": 195557716,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202207-citibike-tripdata.zip",
+      "csv_file": "202207-citibike-tripdata_202207-citibike-tripdata_3.csv",
+      "size_bytes": 196741427,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202207-citibike-tripdata.zip",
+      "csv_file": "202207-citibike-tripdata_202207-citibike-tripdata_1.csv",
+      "size_bytes": 195663477,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202207-citibike-tripdata.zip",
+      "csv_file": "202207-citibike-tripdata_202207-citibike-tripdata_4.csv",
+      "size_bytes": 77853330,
+      "approx_rows": 397932
+    },
+    {
+      "source_zip": "202211-citibike-tripdata.zip",
+      "csv_file": "202211-citibike-tripdata_202211-citibike-tripdata_3.csv",
+      "size_bytes": 75725717,
+      "approx_rows": 386394
+    },
+    {
+      "source_zip": "202211-citibike-tripdata.zip",
+      "csv_file": "202211-citibike-tripdata_202211-citibike-tripdata_2.csv",
+      "size_bytes": 195677707,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202211-citibike-tripdata.zip",
+      "csv_file": "202211-citibike-tripdata_202211-citibike-tripdata_1.csv",
+      "size_bytes": 195900795,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202208-citibike-tripdata.zip",
+      "csv_file": "202208-citibike-tripdata_202208-citibike-tripdata_3.csv",
+      "size_bytes": 194783052,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202208-citibike-tripdata.zip",
+      "csv_file": "202208-citibike-tripdata_202208-citibike-tripdata_2.csv",
+      "size_bytes": 196067062,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202208-citibike-tripdata.zip",
+      "csv_file": "202208-citibike-tripdata_202208-citibike-tripdata_1.csv",
+      "size_bytes": 196820590,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202208-citibike-tripdata.zip",
+      "csv_file": "202208-citibike-tripdata_202208-citibike-tripdata_4.csv",
+      "size_bytes": 113174958,
+      "approx_rows": 576020
+    },
+    {
+      "source_zip": "202202-citibike-tripdata.zip",
+      "csv_file": "202202-citibike-tripdata_202202-citibike-tripdata_1.csv",
+      "size_bytes": 194988061,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202202-citibike-tripdata.zip",
+      "csv_file": "202202-citibike-tripdata_202202-citibike-tripdata_2.csv",
+      "size_bytes": 38628032,
+      "approx_rows": 197312
+    },
+    {
+      "source_zip": "202212-citibike-tripdata.zip",
+      "csv_file": "202212-citibike-tripdata_202212-citibike-tripdata_1.csv",
+      "size_bytes": 195430495,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202212-citibike-tripdata.zip",
+      "csv_file": "202212-citibike-tripdata_202212-citibike-tripdata_2.csv",
+      "size_bytes": 116428817,
+      "approx_rows": 592049
+    },
+    {
+      "source_zip": "202204-citibike-tripdata.zip",
+      "csv_file": "202204-citibike-tripdata_202204-citibike-tripdata_1.csv",
+      "size_bytes": 195466527,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202204-citibike-tripdata.zip",
+      "csv_file": "202204-citibike-tripdata_202204-citibike-tripdata_2.csv",
+      "size_bytes": 195548723,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202204-citibike-tripdata.zip",
+      "csv_file": "202204-citibike-tripdata_202204-citibike-tripdata_3.csv",
+      "size_bytes": 51068235,
+      "approx_rows": 260790
+    },
+    {
+      "source_zip": "202210-citibike-tripdata.zip",
+      "csv_file": "202210-citibike-tripdata_202210-citibike-tripdata_1.csv",
+      "size_bytes": 195359655,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202210-citibike-tripdata.zip",
+      "csv_file": "202210-citibike-tripdata_202210-citibike-tripdata_2.csv",
+      "size_bytes": 196279373,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202210-citibike-tripdata.zip",
+      "csv_file": "202210-citibike-tripdata_202210-citibike-tripdata_3.csv",
+      "size_bytes": 183987983,
+      "approx_rows": 936584
+    },
+    {
+      "source_zip": "202206-citibike-tripdata.zip",
+      "csv_file": "202206-citibike-tripdata_202206-citibike-tripdata_4.csv",
+      "size_bytes": 67513097,
+      "approx_rows": 343914
+    },
+    {
+      "source_zip": "202206-citibike-tripdata.zip",
+      "csv_file": "202206-citibike-tripdata_202206-citibike-tripdata_1.csv",
+      "size_bytes": 195841298,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202206-citibike-tripdata.zip",
+      "csv_file": "202206-citibike-tripdata_202206-citibike-tripdata_3.csv",
+      "size_bytes": 195836098,
+      "approx_rows": 1000000
+    },
+    {
+      "source_zip": "202206-citibike-tripdata.zip",
+      "csv_file": "202206-citibike-tripdata_202206-citibike-tripdata_2.csv",
+      "size_bytes": 195810505,
+      "approx_rows": 1000000
+    }
+  ]
+}

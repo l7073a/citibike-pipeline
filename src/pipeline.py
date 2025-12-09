@@ -37,13 +37,15 @@ LOGS_DIR = Path(__file__).parent.parent / "logs"
 def detect_schema(csv_path: Path) -> str:
     """Detect which schema a CSV file uses."""
     with open(csv_path, 'r') as f:
-        header = f.readline().strip().lower()
-    
-    if 'ride_id' in header or 'member_casual' in header:
+        header = f.readline().strip()
+
+    header_lower = header.lower()
+
+    if 'ride_id' in header_lower or 'member_casual' in header_lower:
         return 'modern'
-    elif 'trip duration' in header:  # Title Case variant
+    elif 'Trip Duration' in header:  # Title Case variant
         return 'legacy_titlecase'
-    elif 'tripduration' in header:
+    elif 'tripduration' in header_lower:
         return 'legacy'
     else:
         # Try to infer from content
@@ -126,31 +128,59 @@ def process_file(
             member_casual,
             rideable_type
         """
-    elif schema in ('legacy', 'legacy_titlecase'):
-        # Handle both lowercase and Title Case column names
+    elif schema == 'legacy':
+        # Lowercase column names (most 2014-2020 data)
         select_clause = """
             -- Generate synthetic ride_id from row data
             MD5(CONCAT(
-                COALESCE(starttime, "Start Time", ''),
-                COALESCE(CAST("start station id" AS VARCHAR), CAST("Start Station ID" AS VARCHAR), ''),
-                COALESCE(CAST(bikeid AS VARCHAR), CAST("Bike ID" AS VARCHAR), '')
+                COALESCE(starttime, ''),
+                COALESCE(CAST("start station id" AS VARCHAR), ''),
+                COALESCE(CAST(bikeid AS VARCHAR), '')
             )) as ride_id,
             NULL as rideable_type,
-            COALESCE(starttime, "Start Time")::TIMESTAMP as started_at,
-            COALESCE(stoptime, "Stop Time")::TIMESTAMP as ended_at,
-            COALESCE(tripduration, "Trip Duration")::INTEGER as duration_sec,
-            REGEXP_REPLACE(CAST(COALESCE("start station id", "Start Station ID") AS VARCHAR), '\\.0$', '') as start_station_id_raw,
-            COALESCE("start station name", "Start Station Name") as start_station_name_raw,
-            COALESCE("start station latitude", "Start Station Latitude")::DOUBLE as start_lat_raw,
-            COALESCE("start station longitude", "Start Station Longitude")::DOUBLE as start_lng_raw,
-            REGEXP_REPLACE(CAST(COALESCE("end station id", "End Station ID") AS VARCHAR), '\\.0$', '') as end_station_id_raw,
-            COALESCE("end station name", "End Station Name") as end_station_name_raw,
-            COALESCE("end station latitude", "End Station Latitude")::DOUBLE as end_lat_raw,
-            COALESCE("end station longitude", "End Station Longitude")::DOUBLE as end_lng_raw,
-            CASE 
-                WHEN COALESCE(usertype, "User Type") = 'Subscriber' THEN 'member'
-                WHEN COALESCE(usertype, "User Type") = 'Customer' THEN 'casual'
-                ELSE COALESCE(usertype, "User Type")
+            TRY_CAST(starttime AS TIMESTAMP) as started_at,
+            TRY_CAST(stoptime AS TIMESTAMP) as ended_at,
+            tripduration::INTEGER as duration_sec,
+            REGEXP_REPLACE(CAST("start station id" AS VARCHAR), '\\.0$', '') as start_station_id_raw,
+            "start station name" as start_station_name_raw,
+            TRY_CAST("start station latitude" AS DOUBLE) as start_lat_raw,
+            TRY_CAST("start station longitude" AS DOUBLE) as start_lng_raw,
+            REGEXP_REPLACE(CAST("end station id" AS VARCHAR), '\\.0$', '') as end_station_id_raw,
+            "end station name" as end_station_name_raw,
+            TRY_CAST("end station latitude" AS DOUBLE) as end_lat_raw,
+            TRY_CAST("end station longitude" AS DOUBLE) as end_lng_raw,
+            CASE
+                WHEN usertype = 'Subscriber' THEN 'member'
+                WHEN usertype = 'Customer' THEN 'casual'
+                ELSE usertype
+            END as member_casual,
+            NULL as rideable_type
+        """
+    elif schema == 'legacy_titlecase':
+        # Title Case column names (some older data)
+        select_clause = """
+            -- Generate synthetic ride_id from row data
+            MD5(CONCAT(
+                COALESCE("Start Time", ''),
+                COALESCE(CAST("Start Station ID" AS VARCHAR), ''),
+                COALESCE(CAST("Bike ID" AS VARCHAR), '')
+            )) as ride_id,
+            NULL as rideable_type,
+            "Start Time"::TIMESTAMP as started_at,
+            "Stop Time"::TIMESTAMP as ended_at,
+            "Trip Duration"::INTEGER as duration_sec,
+            REGEXP_REPLACE(CAST("Start Station ID" AS VARCHAR), '\\.0$', '') as start_station_id_raw,
+            "Start Station Name" as start_station_name_raw,
+            "Start Station Latitude"::DOUBLE as start_lat_raw,
+            "Start Station Longitude"::DOUBLE as start_lng_raw,
+            REGEXP_REPLACE(CAST("End Station ID" AS VARCHAR), '\\.0$', '') as end_station_id_raw,
+            "End Station Name" as end_station_name_raw,
+            "End Station Latitude"::DOUBLE as end_lat_raw,
+            "End Station Longitude"::DOUBLE as end_lng_raw,
+            CASE
+                WHEN "User Type" = 'Subscriber' THEN 'member'
+                WHEN "User Type" = 'Customer' THEN 'casual'
+                ELSE "User Type"
             END as member_casual,
             NULL as rideable_type
         """

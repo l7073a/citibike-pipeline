@@ -1,0 +1,225 @@
+{
+  "timestamp": "2025-12-09T14:17:37.934487",
+  "legacy_stations_found": 2079,
+  "matched": 2020,
+  "match_rate": "97.2%",
+  "confidence_breakdown": {
+    "high": 1930,
+    "medium": 60,
+    "low": 30
+  },
+  "ghost_stations": 59,
+  "ghost_ids": [
+    "5348.02",
+    "6345.08",
+    "345",
+    "6432.10",
+    "518",
+    "7372.10",
+    "404",
+    "6474.12",
+    "517",
+    "300",
+    "263",
+    "5500.07",
+    "290",
+    "225",
+    "377",
+    "4452.01",
+    "4488.09",
+    "2022",
+    "449",
+    "2002",
+    "2023",
+    "5137.13",
+    "7482.15",
+    "4290.08",
+    "5096.11",
+    "4143.03",
+    "4184.07",
+    "414",
+    "5772.07",
+    "314",
+    "4956.02",
+    "243",
+    "365",
+    "282",
+    "5854.10",
+    "364",
+    "7920.01",
+    "218",
+    "3233.06",
+    "4199.13",
+    "7944.11",
+    "5062.01",
+    "7587.14",
+    "6151.05",
+    "8379.07",
+    "8635.08",
+    "8667.01",
+    "8456.02",
+    "8425.01",
+    "3138.09",
+    "431",
+    "8340.05",
+    "8550.04",
+    "7003.03",
+    "6514.03",
+    "8594.02",
+    "SYS032",
+    "SYS038",
+    "SYS016"
+  ],
+  "low_confidence_stations": [
+    {
+      "id": "519",
+      "name": "E 42 St & Vanderbilt Ave",
+      "score": 60.2
+    },
+    {
+      "id": "318",
+      "name": "E 43 St & Vanderbilt Ave",
+      "score": 58.5
+    },
+    {
+      "id": "5755.09",
+      "name": "Washington Square E",
+      "score": 58.6
+    },
+    {
+      "id": "347",
+      "name": "W Houston St & Hudson St",
+      "score": 57.9
+    },
+    {
+      "id": "3002",
+      "name": "South End Ave & Liberty St",
+      "score": 60.3
+    },
+    {
+      "id": "498",
+      "name": "Broadway & W 32 St",
+      "score": 60.1
+    },
+    {
+      "id": "294",
+      "name": "Washington Square E",
+      "score": 58.6
+    },
+    {
+      "id": "167",
+      "name": "E 39 St & 3 Ave",
+      "score": 53.1
+    },
+    {
+      "id": "4488.08",
+      "name": "Court St & State St",
+      "score": 58.9
+    },
+    {
+      "id": "7409.08",
+      "name": "W 84 St & Broadway",
+      "score": 45.8
+    },
+    {
+      "id": "4936.14",
+      "name": "Water St & Main St",
+      "score": 62.9
+    },
+    {
+      "id": "357",
+      "name": "E 11 St & Broadway",
+      "score": 47.6
+    },
+    {
+      "id": "7340.07",
+      "name": "West End Ave & W 78 St",
+      "score": 56.6
+    },
+    {
+      "id": "4801.04",
+      "name": "Melrose St & Broadway",
+      "score": 56.2
+    },
+    {
+      "id": "276",
+      "name": "Duane St & Greenwich St",
+      "score": 56.1
+    },
+    {
+      "id": "4033.06",
+      "name": "Park Pl & Franklin Ave",
+      "score": 60.7
+    },
+    {
+      "id": "534",
+      "name": "Water - Whitehall Plaza",
+      "score": 60.4
+    },
+    {
+      "id": "337",
+      "name": "Old Slip & Front St",
+      "score": 64.9
+    },
+    {
+      "id": "8141.01",
+      "name": "Grant Ave & E 169 St",
+      "score": 55.4
+    },
+    {
+      "id": "3704.08",
+      "name": "Sullivan Pl & Franklin Ave",
+      "score": 61.2
+    },
+    {
+      "id": "4556.08",
+      "name": "Albee Square W & Fulton St",
+      "score": 51.9
+    },
+    {
+      "id": "3736.04",
+      "name": "Sullivan Pl & Bedford Ave",
+      "score": 48.0
+    },
+    {
+      "id": "409",
+      "name": "DeKalb Ave & Skillman St",
+      "score": 58.3
+    },
+    {
+      "id": "7906.13",
+      "name": "E 150 St & Gerard Ave",
+      "score": 43.4
+    },
+    {
+      "id": "4054.02",
+      "name": "Wolcott St & Dwight St",
+      "score": 62.3
+    },
+    {
+      "id": "2932.01",
+      "name": "67 St & Ridge Blvd",
+      "score": 56.7
+    },
+    {
+      "id": "8494.06",
+      "name": "Ryer Ave & E 182 St",
+      "score": 57.4
+    },
+    {
+      "id": "5024.09",
+      "name": "Fulton St & Pearl St",
+      "score": 61.6
+    },
+    {
+      "id": "4920.11",
+      "name": "Broad St & Water St",
+      "score": 60.5
+    },
+    {
+      "id": "8435.06",
+      "name": "Folin St & E 181 St",
+      "score": 56.0
+    }
+  ]
+}

@@ -64,10 +64,10 @@ def extract_legacy_stations(csv_dir: Path) -> list[dict]:
     # 3. Groups by station ID, taking MODE of name and MEDIAN of coords
     query = f"""
     WITH raw AS (
-        SELECT 
+        SELECT
             COALESCE(
-                "start station id",
-                start_station_id
+                CAST("start station id" AS VARCHAR),
+                CAST(start_station_id AS VARCHAR)
             ) as station_id,
             COALESCE(
                 "start station name",

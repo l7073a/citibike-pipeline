@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-12-09T14:17:50.439744",
+  "files_processed": 12,
+  "total_rows_in": 0,
+  "total_rows_out": 0,
+  "file_stats": [
+    {
+      "input_file": "2014-citibike-tripdata_201401-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201402-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201403-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201404-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201405-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201406-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201407-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201408-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201409-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201410-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201411-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201412-citibike-tripdata_1.csv",
+      "error": "Binder Error: Referenced column \"Start Time\" not found in FROM clause!\nCandidate bindings: \"starttime\", \"start station name\", \"stoptime\", \"start station id\", \"start station latitude\"\n\nLINE 7:                 COALESCE(starttime, \"Start Time\", ''),\n                                            ^"
+    }
+  ]
+}

@@ -1,0 +1,491 @@
+{
+  "timestamp": "2025-12-09T14:29:57.601210",
+  "legacy_stations_found": 3531,
+  "matched": 3391,
+  "match_rate": "96.0%",
+  "confidence_breakdown": {
+    "high": 3197,
+    "medium": 127,
+    "low": 67
+  },
+  "ghost_stations": 140,
+  "ghost_ids": [
+    "519",
+    "518",
+    "517",
+    "345",
+    "377",
+    "5348.02",
+    "2002",
+    "6432.09",
+    "2023",
+    "6345.08",
+    "225",
+    "263",
+    "449",
+    "404",
+    "314",
+    "414",
+    "300",
+    "282",
+    "7372.10",
+    "3155",
+    "5500.07",
+    "6432.10",
+    "243",
+    "6474.12",
+    "3320",
+    "364",
+    "290",
+    "4452.01",
+    "3230",
+    "3292",
+    "3176",
+    "365",
+    "6432.08",
+    "3400",
+    "5096.11",
+    "5062.01",
+    "7587.14",
+    "4184.07",
+    "3377",
+    "4953.01",
+    "3407",
+    "6345.01",
+    "5137.13",
+    "3068",
+    "4488.09",
+    "4956.02",
+    "3447",
+    "3469",
+    "6432.1",
+    "4290.08",
+    "7121.13",
+    "4143.03",
+    "3478",
+    "4199.13",
+    "3610",
+    "7538.12",
+    "7482.15",
+    "7003.03",
+    "5854.10",
+    "5794.03",
+    "3441",
+    "7372.1",
+    "218",
+    "3233.06",
+    "3653",
+    "7920.01",
+    "4637.07",
+    "5772.07",
+    "6332.09",
+    "8635.08",
+    "3477",
+    "3353",
+    "8667.01",
+    "8379.07",
+    "8425.01",
+    "431",
+    "3138.09",
+    "8456.02",
+    "7944.11",
+    "3445",
+    "8550.04",
+    "8340.05",
+    "3625",
+    "3237",
+    "3793",
+    "6151.05",
+    "3149",
+    "3700",
+    "NULL",
+    "3432",
+    "5854.1",
+    "255",
+    "6514.03",
+    "8036.09",
+    "3450",
+    "3648.06",
+    "3017",
+    "3599.01",
+    "8594.02",
+    "3642",
+    "8206.05",
+    "3468",
+    "3014",
+    "6462.09",
+    "3019",
+    "3548",
+    "SYS016",
+    "5225.09",
+    "3245",
+    "4513.03",
+    "6459.06",
+    "3239",
+    "3719",
+    "6234.08",
+    "SYS038",
+    "SYS035",
+    "3020",
+    "SYS032",
+    "3219",
+    "8272.01",
+    "3257",
+    "SYS033",
+    "7575.01",
+    "3240",
+    "3683",
+    "3253",
+    "3685",
+    "3485",
+    "3040",
+    "1234.56",
+    "3250",
+    "3197",
+    "3036",
+    "3911",
+    "3487",
+    "3252",
+    "SYS028",
+    "SYS036",
+    "SYS052",
+    "3636"
+  ],
+  "low_confidence_stations": [
+    {
+      "id": "3002",
+      "name": "South End Ave & Liberty St",
+      "score": 60.3
+    },
+    {
+      "id": "498",
+      "name": "Broadway & W 32 St",
+      "score": 60.1
+    },
+    {
+      "id": "167",
+      "name": "E 39 St & 3 Ave",
+      "score": 53.1
+    },
+    {
+      "id": "357",
+      "name": "E 11 St & Broadway",
+      "score": 47.6
+    },
+    {
+      "id": "3235",
+      "name": "E 41 St & Madison Ave",
+      "score": 47.8
+    },
+    {
+      "id": "276",
+      "name": "Duane St & Greenwich St",
+      "score": 56.1
+    },
+    {
+      "id": "318",
+      "name": "E 43 St & Vanderbilt Ave",
+      "score": 58.5
+    },
+    {
+      "id": "337",
+      "name": "Old Slip & Front St",
+      "score": 64.9
+    },
+    {
+      "id": "534",
+      "name": "Water - Whitehall Plaza",
+      "score": 60.4
+    },
+    {
+      "id": "3177",
+      "name": "W 84 St & Broadway",
+      "score": 45.8
+    },
+    {
+      "id": "4488.08",
+      "name": "Court St & State St",
+      "score": 58.9
+    },
+    {
+      "id": "294",
+      "name": "Washington Square E",
+      "score": 58.6
+    },
+    {
+      "id": "5755.09",
+      "name": "Washington Square E",
+      "score": 58.6
+    },
+    {
+      "id": "3402",
+      "name": "Court St & State St",
+      "score": 58.9
+    },
+    {
+      "id": "7409.08",
+      "name": "W 84 St & Broadway",
+      "score": 45.8
+    },
+    {
+      "id": "3431",
+      "name": "E 35 St & 3 Ave",
+      "score": 46.2
+    },
+    {
+      "id": "3474",
+      "name": "6 Ave & Spring St",
+      "score": 56.0
+    },
+    {
+      "id": "4801.04",
+      "name": "Melrose St & Broadway",
+      "score": 56.2
+    },
+    {
+      "id": "3684",
+      "name": "W 12 St & W 4 St",
+      "score": 54.9
+    },
+    {
+      "id": "3417",
+      "name": "Baltic St & 5 Ave",
+      "score": 63.2
+    },
+    {
+      "id": "7340.07",
+      "name": "West End Ave & W 78 St",
+      "score": 56.6
+    },
+    {
+      "id": "384",
+      "name": "Fulton St & Washington Ave",
+      "score": 62.7
+    },
+    {
+      "id": "4033.06",
+      "name": "Park Pl & Franklin Ave",
+      "score": 60.7
+    },
+    {
+      "id": "409",
+      "name": "DeKalb Ave & Skillman St",
+      "score": 58.3
+    },
+    {
+      "id": "5024.09",
+      "name": "Fulton St & Pearl St",
+      "score": 61.6
+    },
+    {
+      "id": "5400.08",
+      "name": "Duane St & Greenwich St",
+      "score": 56.1
+    },
+    {
+      "id": "4936.14",
+      "name": "Water St & Main St",
+      "score": 62.9
+    },
+    {
+      "id": "4208.11",
+      "name": "Baltic St & 5 Ave",
+      "score": 63.2
+    },
+    {
+      "id": "3704.08",
+      "name": "Sullivan Pl & Franklin Ave",
+      "score": 61.2
+    },
+    {
+      "id": "3103",
+      "name": "N 11 St & Wythe Ave",
+      "score": 64.7
+    },
+    {
+      "id": "3663",
+      "name": "Sterling Pl & 7 Ave",
+      "score": 61.2
+    },
+    {
+      "id": "6389.03",
+      "name": "E 39 St & 3 Ave",
+      "score": 53.1
+    },
+    {
+      "id": "3120",
+      "name": "Center Blvd & Borden Ave",
+      "score": 54.4
+    },
+    {
+      "id": "3449",
+      "name": "Eckford St & Engert Ave",
+      "score": 60.1
+    },
+    {
+      "id": "3222",
+      "name": "Hanson Pl & St Felix St",
+      "score": 60.0
+    },
+    {
+      "id": "3578",
+      "name": "Park Pl & Franklin Ave",
+      "score": 60.7
+    },
+    {
+      "id": "4962.04",
+      "name": "Water - Whitehall Plaza",
+      "score": 60.4
+    },
+    {
+      "id": "3666",
+      "name": "32 St & 30 Ave",
+      "score": 46.9
+    },
+    {
+      "id": "3736.04",
+      "name": "Sullivan Pl & Bedford Ave",
+      "score": 48.0
+    },
+    {
+      "id": "5184.07",
+      "name": "South End Ave & Liberty St",
+      "score": 60.3
+    },
+    {
+      "id": "3723",
+      "name": "Cadman Plaza E & Johnson St",
+      "score": 64.6
+    },
+    {
+      "id": "4556.08",
+      "name": "Albee Square W & Fulton St",
+      "score": 51.9
+    },
+    {
+      "id": "4677.1",
+      "name": "Cadman Plaza E & Johnson St",
+      "score": 64.6
+    },
+    {
+      "id": "3340",
+      "name": "Wolcott St & Dwight St",
+      "score": 62.3
+    },
+    {
+      "id": "8141.01",
+      "name": "Grant Ave & E 169 St",
+      "score": 55.6
+    },
+    {
+      "id": "3264",
+      "name": "E 61 St & Park Ave",
+      "score": 59.2
+    },
+    {
+      "id": "3079",
+      "name": "Leonard St & Grand St",
+      "score": 63.9
+    },
+    {
+      "id": "7906.13",
+      "name": "E 150 St & Gerard Ave",
+      "score": 43.4
+    },
+    {
+      "id": "4054.02",
+      "name": "Wolcott St & Dwight St",
+      "score": 62.3
+    },
+    {
+      "id": "7023.09",
+      "name": "Amsterdam Ave & W 60 St",
+      "score": 54.1
+    },
+    {
+      "id": "3234",
+      "name": "E 40 St & Madison Ave",
+      "score": 57.8
+    },
+    {
+      "id": "3596",
+      "name": "Sullivan Pl & Bedford Ave",
+      "score": 48.0
+    },
+    {
+      "id": "8494.06",
+      "name": "Ryer Ave & E 182 St",
+      "score": 57.4
+    },
+    {
+      "id": "4199.07",
+      "name": "Bergen St & Carlton Ave",
+      "score": 61.1
+    },
+    {
+      "id": "2932.01",
+      "name": "67 St & Ridge Blvd",
+      "score": 56.7
+    },
+    {
+      "id": "5829.12",
+      "name": "E 11 St & Broadway",
+      "score": 47.6
+    },
+    {
+      "id": "3720",
+      "name": "Wyckoff St & Bond St",
+      "score": 54.4
+    },
+    {
+      "id": "6234.01",
+      "name": "57 St & Woodside Ave",
+      "score": 60.8
+    },
+    {
+      "id": "4993.12",
+      "name": "Old Slip & Front St",
+      "score": 64.9
+    },
+    {
+      "id": "4920.11",
+      "name": "Broad St & Water St",
+      "score": 60.5
+    },
+    {
+      "id": "3133",
+      "name": "E 67 St & Lexington Ave",
+      "score": 57.2
+    },
+    {
+      "id": "3908",
+      "name": "Battery Pl & Greenwich St",
+      "score": 51.2
+    },
+    {
+      "id": "8435.06",
+      "name": "Folin St & E 181 St",
+      "score": 56.0
+    },
+    {
+      "id": "3870",
+      "name": "Melrose St & Broadway",
+      "score": 56.2
+    },
+    {
+      "id": "5001.09",
+      "name": "Battery Pl & Greenwich St",
+      "score": 51.2
+    },
+    {
+      "id": "6213.01",
+      "name": "51 Ave & Corona Ave",
+      "score": 50.5
+    },
+    {
+      "id": "4330.08",
+      "name": "Wyckoff St & Bond St",
+      "score": 54.4
+    }
+  ]
+}

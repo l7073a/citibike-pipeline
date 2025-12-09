@@ -1,0 +1,144 @@
+{
+  "timestamp": "2025-12-09T14:18:34.409254",
+  "files_processed": 12,
+  "total_rows_in": 7552028,
+  "total_rows_out": 6266644,
+  "file_stats": [
+    {
+      "input_file": "2014-citibike-tripdata_201401-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 300400,
+      "rows_out": 300348,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 286225,
+        "ghost": 14123,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201402-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 224736,
+      "rows_out": 224621,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 214075,
+        "ghost": 10546,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201403-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 439117,
+      "rows_out": 439117,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 418008,
+        "ghost": 21109,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201404-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 670780,
+      "rows_out": 670780,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 639209,
+        "ghost": 31571,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201405-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 866117,
+      "rows_out": 866117,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 826233,
+        "ghost": 39884,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201406-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 936880,
+      "rows_out": 936880,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 891362,
+        "ghost": 45518,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201407-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 968842,
+      "rows_out": 968842,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 922381,
+        "ghost": 46461,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201408-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 963489,
+      "rows_out": 963489,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 916872,
+        "ghost": 46617,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201409-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 953887,
+      "rows_out": 397025,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 377525,
+        "ghost": 19500,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201410-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 828711,
+      "rows_out": 331728,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 316035,
+        "ghost": 15693,
+        "unmatched": 0
+      }
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201411-citibike-tripdata_1.csv",
+      "error": "Conversion Error: invalid timestamp field format: \"11/1/2014 00:01:48\", expected format is (YYYY-MM-DD HH:MM:SS[.US][\u00b1HH[:MM[:SS]]| ZONE]) when casting from source column stoptime\n\nLINE 13:             stoptime::TIMESTAMP as ended_at,\n                             ^"
+    },
+    {
+      "input_file": "2014-citibike-tripdata_201412-citibike-tripdata_1.csv",
+      "schema": "legacy",
+      "rows_in": 399069,
+      "rows_out": 167697,
+      "station_match": {
+        "direct": 0,
+        "crosswalk": 160027,
+        "ghost": 7670,
+        "unmatched": 0
+      }
+    }
+  ]
+}
