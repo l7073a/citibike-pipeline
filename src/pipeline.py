@@ -132,10 +132,13 @@ def process_file(
             end_lat as end_lat_raw,
             end_lng as end_lng_raw,
             member_casual,
-            rideable_type
+            NULL::VARCHAR as bike_id,
+            NULL::INTEGER as birth_year,
+            NULL::INTEGER as gender
         """
     elif schema == 'legacy':
         # Lowercase column names (most 2014-2020 data)
+        # Handle multiple datetime formats: YYYY-MM-DD HH:MM:SS and M/D/YYYY HH:MM:SS
         select_clause = """
             -- Generate synthetic ride_id from row data
             MD5(CONCAT(
@@ -144,8 +147,18 @@ def process_file(
                 COALESCE(CAST(bikeid AS VARCHAR), '')
             )) as ride_id,
             NULL as rideable_type,
-            TRY_CAST(starttime AS TIMESTAMP) as started_at,
-            TRY_CAST(stoptime AS TIMESTAMP) as ended_at,
+            COALESCE(
+                TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
+                TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+                TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
+                TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M')
+            ) as started_at,
+            COALESCE(
+                TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
+                TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+                TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
+                TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%m/%d/%Y %H:%M')
+            ) as ended_at,
             tripduration::INTEGER as duration_sec,
             REGEXP_REPLACE(CAST("start station id" AS VARCHAR), '\\.0$', '') as start_station_id_raw,
             "start station name" as start_station_name_raw,
@@ -160,7 +173,9 @@ def process_file(
                 WHEN usertype = 'Customer' THEN 'casual'
                 ELSE usertype
             END as member_casual,
-            NULL as rideable_type
+            CAST(bikeid AS VARCHAR) as bike_id,
+            TRY_CAST("birth year" AS INTEGER) as birth_year,
+            TRY_CAST(gender AS INTEGER) as gender
         """
     elif schema == 'legacy_titlecase':
         # Title Case column names (some older data)
@@ -188,17 +203,26 @@ def process_file(
                 WHEN "User Type" = 'Customer' THEN 'casual'
                 ELSE "User Type"
             END as member_casual,
-            NULL as rideable_type
+            CAST("Bike ID" AS VARCHAR) as bike_id,
+            TRY_CAST("Birth Year" AS INTEGER) as birth_year,
+            TRY_CAST("Gender" AS INTEGER) as gender
         """
     else:
         print(f"    ⚠ Unknown schema, skipping")
         return stats
     
+    # Determine read options based on schema
+    # For legacy schema, force timestamp columns to VARCHAR to prevent mis-parsing
+    if schema in ('legacy', 'legacy_titlecase'):
+        read_options = "ignore_errors=true, types={'starttime': 'VARCHAR', 'stoptime': 'VARCHAR', 'Start Time': 'VARCHAR', 'Stop Time': 'VARCHAR'}"
+    else:
+        read_options = "ignore_errors=true"
+
     # Main transformation query with station resolution
     query = f"""
     WITH raw AS (
         SELECT {select_clause}
-        FROM read_csv_auto('{csv_path}', ignore_errors=true)
+        FROM read_csv_auto('{csv_path}', {read_options})
     ),
     -- Classify station IDs as modern (UUID) or legacy (integer)
     classified AS (
@@ -293,6 +317,9 @@ def process_file(
         end_lng,
         member_casual,
         rideable_type,
+        bike_id,
+        birth_year,
+        gender,
         '{csv_path.name}' as source_file,
         start_match_type,
         end_match_type
@@ -474,6 +501,26 @@ def main():
     print(f"✓ {total_in:,} rows in → {total_out:,} rows out")
     print(f"✓ Output: {args.output_dir}")
     print(f"✓ Log: {log_path}")
+
+    # Run validation on processed data
+    print(f"\n{'='*50}")
+    print("Running station mapping validation...")
+
+    from validate_mappings import validate_mappings, print_validation_report
+
+    validation_results = validate_mappings(
+        processed_dir=args.output_dir,
+        year=args.year,
+        distance_threshold_m=200,
+        outlier_pct_threshold=5.0,
+    )
+
+    print_validation_report(validation_results)
+
+    # Save validation results to log
+    validation_log_path = LOGS_DIR / f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(validation_log_path, 'w') as f:
+        json.dump(validation_results, f, indent=2)
 
 
 if __name__ == "__main__":

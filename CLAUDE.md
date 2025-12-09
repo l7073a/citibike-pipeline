@@ -42,7 +42,7 @@ There are **4 different datetime formats** across the dataset:
 - Jan-Oct 2014: `YYYY-MM-DD HH:MM:SS`
 - Nov-Dec 2014: `M/D/YYYY HH:MM:SS`
 
-The pipeline uses `TRY_CAST()` to handle this gracefully.
+**CRITICAL**: DuckDB's `read_csv_auto` will auto-detect datetime formats and can get it wrong when dates are ambiguous (e.g., `9/1/2014` could be Sept 1 or Jan 9). See "DuckDB Best Practices" section below for the fix.
 
 ### 4. Other Data Quality Issues
 
@@ -204,6 +204,61 @@ python src/audit.py --station-timeline
 
 All audit results are saved to `logs/audit_*.json` for reproducibility.
 
+### 13. Station Mapping Validation
+
+The pipeline automatically validates station mappings after processing by comparing raw coordinates to canonical coordinates.
+
+**Logic**: If a mapping is wrong, the distance discrepancy should be consistent across ALL trips for that legacy station ID. If only a few trips are off, it's likely bad raw data, not a bad mapping.
+
+**Metrics tracked per station**:
+- `median_distance_m`: Median distance between raw and canonical coords
+- `pct_over_threshold`: Percentage of trips where distance > 200m
+
+**Classification**:
+- **Suspicious mapping**: High median distance (>200m) → likely wrong mapping, affects all trips
+- **Bad raw data**: Low median but some outliers → mapping is correct, just a few bad data points
+- **Good mapping**: Everything within tolerance
+
+Run standalone: `python src/validate_mappings.py --year 2014`
+
+### 14. DuckDB Best Practices
+
+**Problem: Ambiguous date formats**
+
+DuckDB's `read_csv_auto` samples the first ~20K rows to detect types. For dates like `9/1/2014`, it might guess `%d/%m/%Y` (European) instead of `%m/%d/%Y` (US). This causes:
+- Silent data corruption (wrong dates)
+- Errors when day > 12 (e.g., `9/13/2014` fails to parse as day 13, month 9)
+
+**Solution: Force timestamp columns to VARCHAR, then parse explicitly**
+
+```python
+# BAD - DuckDB may mis-detect the format
+read_csv_auto('file.csv', ignore_errors=true)
+
+# GOOD - Force VARCHAR, parse with explicit formats
+read_csv_auto('file.csv',
+    ignore_errors=true,
+    types={'starttime': 'VARCHAR', 'stoptime': 'VARCHAR'}
+)
+```
+
+Then in SQL, try multiple formats with COALESCE:
+```sql
+COALESCE(
+    TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
+    TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+    TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
+    TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M')
+) as started_at
+```
+
+**Other DuckDB tips**:
+- `TRY_CAST()` returns NULL on failure instead of erroring
+- `TRY_STRPTIME()` returns NULL if format doesn't match
+- `ignore_errors=true` skips malformed rows entirely
+- Use `DESCRIBE SELECT * FROM read_csv_auto('file.csv')` to see inferred types
+- Cast to VARCHAR first when column type is uncertain: `CAST(col AS VARCHAR)`
+
 ## File Locations
 
 ```
@@ -215,7 +270,8 @@ citibike-pipeline/
 │   ├── build_crosswalk.py   # Build legacy→modern station mapping
 │   ├── pipeline.py          # Main ETL transformation
 │   ├── cleanup_duplicates.py # Remove redundant duplicate files
-│   └── audit.py             # Data quality analysis and auditing
+│   ├── audit.py             # Data quality analysis and auditing
+│   └── validate_mappings.py # Station mapping validation
 ├── reference/
 │   ├── current_stations.csv  # 2,318 stations from GBFS
 │   ├── station_crosswalk.csv # Legacy ID → Modern UUID mapping
@@ -257,10 +313,9 @@ con.execute('''
 
 ## Future Work
 
-1. **Full processing**: Run pipeline on all 245 CSV files (~150M+ trips)
+1. **Full processing**: Run pipeline on all 373 CSV files (~150M+ trips)
 2. **Manual overrides**: Add `reference/manual_overrides.csv` for known mis-matches
-3. **Validation**: Query to verify station resolution quality
-4. **Incremental updates**: Add logic to skip already-processed files
+3. **Incremental updates**: Add logic to skip already-processed files
 
 ## Session History
 
@@ -287,4 +342,18 @@ con.execute('''
 - Added station timeline tracking (first/last appearance)
 - Documented coordinate handling strategy (canonical coordinates)
 - All filter stats now logged for auditability
-- Current CSV count after cleanup: 283 files (was 293)
+- Current CSV count after cleanup: 373 files
+
+### Dec 9, 2024 - Session 4 (continued)
+- Downloaded remaining 2024 and 2025 months (was only June from each)
+- Added `bike_id`, `birth_year`, `gender`, `rideable_type` columns to preserve all data
+- Legacy data has demographics (birth_year, gender, bike_id); modern has rideable_type
+- NULL used for columns not present in a given schema era
+- Created `validate_mappings.py` for station mapping validation
+- Integrated validation into pipeline (runs automatically after processing)
+- Fixed critical DuckDB datetime parsing bug:
+  - `read_csv_auto` was mis-detecting `M/D/YYYY` as `D/M/YYYY` for dates where day ≤ 12
+  - Caused 60% of Sep-Dec 2014 rows to be silently corrupted or filtered
+  - Fix: Force timestamp columns to VARCHAR, parse explicitly with TRY_STRPTIME
+- Successfully processed 2013 and 2014 with ~0.5% filter rate, 94% station match rate
+- Renamed CLAUDE_NOTES.md to CLAUDE.md (best practice)
