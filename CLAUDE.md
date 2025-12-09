@@ -425,3 +425,28 @@ Solution: Standardized on `lon` everywhere:
   2. **Raw coordinate preservation**: Added `*_lat_raw` / `*_lon_raw` columns for validation
   3. **Single-pass filter stats**: Combined stats query with main query (halved I/O)
   4. **Coordinate naming standardization**: Unified on `lon` instead of mixing `lng`/`lon`
+
+### Dec 9, 2024 - Session 5 (continued)
+- Added **incremental processing**: Pipeline skips files with existing parquet output
+  - Use `--force` flag to reprocess all files
+  - Allows resuming interrupted runs without reprocessing
+- Fixed **4-digit milliseconds** datetime format (2018+ data)
+  - 2018 timestamps have `.4340` not `.434` - needed `%f` format specifier
+  - Without fix, 100% of 2018+ rows were filtered as invalid timestamps
+- Fixed **schema consistency** across legacy/modern eras:
+  - `duration_sec`: Now INTEGER everywhere (was DOUBLE in modern)
+  - `rideable_type`: Now VARCHAR everywhere (was untyped NULL in legacy)
+- **Successfully processed 2013-2015**: 23.5M trips, 35 parquet files
+  - 0.5% filter rate, 94% station match rate, 0 suspicious mappings
+  - Output: 966 MB parquet (vs 3.8 GB raw CSV = 75% compression)
+- **Sanity check results** (cross-year query test):
+  - Median trip duration: 10.6 minutes (typical for bike share)
+  - Member/casual split: 87% / 13%
+  - Top station: 8 Ave & W 31 St (253K trips)
+  - Station growth: 332 (2013) → 474 (2015)
+- Added **Jupyter notebook** for data exploration (`notebooks/explore_data.ipynb`)
+  - Time series charts, station maps, pattern analysis
+  - Uses DuckDB glob queries on parquet files
+- Installed **DBeaver** for SQL GUI exploration
+- **Environment fix**: Added `~/Library/Python/3.9/bin` to PATH in `~/.zshrc`
+  - Fixes `jupyter notebook` command not found issue
