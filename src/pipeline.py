@@ -501,7 +501,9 @@ def main():
                         help="Directory with reference tables")
     parser.add_argument("--limit", type=int, help="Process only first N files")
     parser.add_argument("--year", type=int, help="Process only files from this year")
-    
+    parser.add_argument("--force", action="store_true",
+                        help="Reprocess files even if output already exists")
+
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -532,40 +534,56 @@ def main():
     all_stats = []
     total_in = 0
     total_out = 0
-    
+    skipped = 0
+
     for i, csv_path in enumerate(csv_files):
+        output_path = args.output_dir / f"{csv_path.stem}.parquet"
+
+        # Skip if output already exists (unless --force)
+        if output_path.exists() and not args.force:
+            print(f"\n[{i+1}/{len(csv_files)}] {csv_path.name} (skipped - output exists)")
+            skipped += 1
+            all_stats.append({'input_file': csv_path.name, 'skipped': True})
+            continue
+
         print(f"\n[{i+1}/{len(csv_files)}] {csv_path.name}")
-        
+
         try:
             stats = process_file(con, csv_path, args.output_dir)
             all_stats.append(stats)
             total_in += stats['rows_in']
             total_out += stats['rows_out']
-            
+
             match_pct = 100 * (stats['station_match']['direct'] + stats['station_match']['crosswalk']) / max(stats['rows_out'], 1)
             filtered = stats['rows_in'] - stats['rows_out']
             filter_pct = 100 * filtered / max(stats['rows_in'], 1)
             print(f"    {stats['rows_in']:,} → {stats['rows_out']:,} rows ({filter_pct:.1f}% filtered) | {match_pct:.1f}% stations matched")
-            
+
         except Exception as e:
             print(f"    ✗ Error: {e}")
             all_stats.append({'input_file': csv_path.name, 'error': str(e)})
     
     # Save run log
+    processed = len(csv_files) - skipped
     log_path = LOGS_DIR / f"pipeline_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     log_data = {
         'timestamp': datetime.now().isoformat(),
-        'files_processed': len(csv_files),
+        'files_total': len(csv_files),
+        'files_processed': processed,
+        'files_skipped': skipped,
         'total_rows_in': total_in,
         'total_rows_out': total_out,
         'file_stats': all_stats,
     }
-    
+
     with open(log_path, 'w') as f:
         json.dump(log_data, f, indent=2)
-    
+
     print(f"\n{'='*50}")
-    print(f"✓ Processed {len(csv_files)} files")
+    if skipped > 0:
+        print(f"✓ Processed {processed} files ({skipped} skipped - already exist)")
+    else:
+        print(f"✓ Processed {processed} files")
     print(f"✓ {total_in:,} rows in → {total_out:,} rows out")
     print(f"✓ Output: {args.output_dir}")
     print(f"✓ Log: {log_path}")
