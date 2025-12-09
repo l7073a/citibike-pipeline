@@ -158,7 +158,7 @@ def process_file(
             rideable_type,
             started_at::TIMESTAMP as started_at,
             ended_at::TIMESTAMP as ended_at,
-            EPOCH(ended_at::TIMESTAMP - started_at::TIMESTAMP) as duration_sec,
+            CAST(EPOCH(ended_at::TIMESTAMP - started_at::TIMESTAMP) AS INTEGER) as duration_sec,
             CAST(start_station_id AS VARCHAR) as start_station_id_raw,
             start_station_name as start_station_name_raw,
             start_lat as start_lat_raw,
@@ -182,16 +182,18 @@ def process_file(
                 COALESCE(CAST("start station id" AS VARCHAR), ''),
                 COALESCE(CAST(bikeid AS VARCHAR), '')
             )) as ride_id,
-            NULL as rideable_type,
+            NULL::VARCHAR as rideable_type,
             COALESCE(
                 TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
                 TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+                TRY_STRPTIME(CAST(starttime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%f'),
                 TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
                 TRY_STRPTIME(CAST(starttime AS VARCHAR), '%m/%d/%Y %H:%M')
             ) as started_at,
             COALESCE(
                 TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%Y-%m-%d %H:%M:%S'),
                 TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%g'),
+                TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%Y-%m-%d %H:%M:%S.%f'),
                 TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%m/%d/%Y %H:%M:%S'),
                 TRY_STRPTIME(CAST(stoptime AS VARCHAR), '%m/%d/%Y %H:%M')
             ) as ended_at,
@@ -222,7 +224,7 @@ def process_file(
                 COALESCE(CAST("Start Station ID" AS VARCHAR), ''),
                 COALESCE(CAST("Bike ID" AS VARCHAR), '')
             )) as ride_id,
-            NULL as rideable_type,
+            NULL::VARCHAR as rideable_type,
             "Start Time"::TIMESTAMP as started_at,
             "Stop Time"::TIMESTAMP as ended_at,
             "Trip Duration"::INTEGER as duration_sec,
