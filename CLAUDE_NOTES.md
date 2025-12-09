@@ -27,17 +27,34 @@ Even "modern" data (2020+) doesn't use the same UUIDs as the GBFS API:
 
 This means **ALL trip data** (2013-2025) needs the crosswalk to resolve station IDs to current GBFS stations.
 
-### 3. Data Quality Issues Found
+### 3. Datetime Format Variations (Important!)
+
+There are **4 different datetime formats** across the dataset:
+
+| Format | Files | Years | Example |
+|--------|-------|-------|---------|
+| `YYYY-MM-DD HH:MM:SS` | 49 | 2013-2017 | `2013-06-01 00:00:01` |
+| `M/D/YYYY HH:MM:SS` | 31 | 2014-2016 | `11/1/2014 00:00:11` |
+| `M/D/YYYY H:MM` | 4 | 2015 | `1/1/2015 0:01` |
+| `YYYY-MM-DD HH:MM:SS.fff` | 208 | 2018-2025 | `2018-01-01 13:50:57.434` |
+
+**Within the same year**, different months can have different formats! For example:
+- Jan-Oct 2014: `YYYY-MM-DD HH:MM:SS`
+- Nov-Dec 2014: `M/D/YYYY HH:MM:SS`
+
+The pipeline uses `TRY_CAST()` to handle this gracefully.
+
+### 4. Other Data Quality Issues
 
 - **2013**: Has literal `NULL` strings in coordinate columns (not null values)
-- **Nov 2014**: Uses `M/D/YYYY` timestamp format instead of `YYYY-MM-DD`
 - **2013**: Has quoted headers (`"tripduration"`) while later years don't
+- **2017**: Some files have extra columns (16 vs 15) - use `ignore_errors=true`
 
 Fixes applied:
 - Use `TRY_CAST()` instead of `::TYPE` for timestamps and coordinates
 - DuckDB's `ignore_errors=true` handles malformed rows
 
-### 4. Zip File Structures by Year
+### 5. Zip File Structures by Year
 
 | Years | Structure |
 |-------|-----------|
@@ -47,7 +64,7 @@ Fixes applied:
 
 The `ingest.py` script handles nested zips automatically.
 
-### 5. Crosswalk Statistics
+### 6. Crosswalk Statistics
 
 After scanning all years (2013-2025):
 - 3,531 unique legacy station IDs found
@@ -59,7 +76,36 @@ Match confidence levels:
 - **Medium**: Distance < 150m OR name similarity > 60%
 - **Low**: Matched but with lower confidence
 
-### 6. Processing Match Rates by Era
+### 7. Ghost Station Handling (Historical Data Preservation)
+
+**Ghost stations** are stations that existed historically but no longer exist in the current GBFS data. The pipeline **preserves these trips** with their original station names and coordinates.
+
+How it works:
+1. The crosswalk stores legacy station info (ID, name, lat, lon) even when no modern match exists
+2. Trips are tagged with `start_match_type` / `end_match_type` = `'ghost'`
+3. Original coordinates from the trip data are preserved
+4. Station names come from the crosswalk's historical record
+
+Example output for a ghost station trip:
+```
+Station ID: 519
+Station Name: "Pershing Square North"
+Coordinates: 40.751873, -73.977706
+Match Type: ghost
+```
+
+This ensures the historical dataset remains complete and accurate - you can still analyze trips to/from stations that have since closed.
+
+**Top Ghost Stations by Trip Volume:**
+| Legacy ID | Name | Historical Trips |
+|-----------|------|------------------|
+| 519 | Pershing Square North | 1,075,680 |
+| 518 | E 39 St & 2 Ave | 429,419 |
+| 517 | Pershing Square South | 419,741 |
+| 345 | W 13 St & 6 Ave | 304,290 |
+| 377 | 6 Ave & Canal St | 277,504 |
+
+### 8. Processing Match Rates by Era
 
 | Year | Match Rate | Notes |
 |------|------------|-------|
@@ -115,16 +161,6 @@ con.execute('''
 "
 ```
 
-## Ghost Stations (Notable)
-
-These high-traffic stations no longer exist:
-- `519` "Pershing Square North" (1.07M trips) - near Grand Central
-- `518` "E 39 St & 2 Ave" (429K trips)
-- `517` "Pershing Square South" (420K trips)
-- `345` "W 13 St & 6 Ave" (304K trips)
-
-Their coordinates are preserved in the crosswalk for historical analysis.
-
 ## Future Work
 
 1. **Full processing**: Run pipeline on all 245 CSV files (~150M+ trips)
@@ -134,10 +170,17 @@ Their coordinates are preserved in the crosswalk for historical analysis.
 
 ## Session History
 
-### Dec 9, 2024
+### Dec 9, 2024 - Session 1
 - Set up GitHub repo
 - Downloaded data from all years (2013-2025)
 - Discovered schema change was at 2020 not 2021
 - Fixed pipeline bugs (TRY_CAST, timestamp formats, NULL strings)
 - Built crosswalk with 96% match rate
 - Tested pipeline on representative years from each era
+
+### Dec 9, 2024 - Session 2 (continued)
+- Surveyed datetime formats across all 293 CSV files
+- Found 4 distinct datetime formats, varying within years
+- Documented ghost station handling in detail
+- Verified historical trips are preserved (not deleted)
+- Updated CLAUDE_NOTES.md with comprehensive learnings
