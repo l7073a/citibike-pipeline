@@ -1,0 +1,40 @@
+# Data files (too large for git)
+data/raw_zips/*
+data/raw_csvs/*
+data/processed/*
+
+# But keep directory structure
+!data/raw_zips/.gitkeep
+!data/raw_csvs/.gitkeep
+!data/processed/.gitkeep
+
+# Logs (optional - you may want to commit these for auditability)
+# logs/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
