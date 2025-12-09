@@ -106,6 +106,12 @@ def process_file(
         'schema': schema,
         'rows_in': 0,
         'rows_out': 0,
+        'rows_filtered': {
+            'missing_station': 0,
+            'duration_too_short': 0,
+            'duration_too_long': 0,
+            'invalid_timestamp': 0,
+        },
         'station_match': {'direct': 0, 'crosswalk': 0, 'ghost': 0, 'unmatched': 0},
     }
     
@@ -293,19 +299,80 @@ def process_file(
     FROM with_end
     WHERE started_at IS NOT NULL
       AND ended_at IS NOT NULL
-      AND duration_sec > 0
-      AND duration_sec < 86400  -- Less than 24 hours
+      AND start_station_id_raw IS NOT NULL
+      AND CAST(start_station_id_raw AS VARCHAR) != ''
+      AND end_station_id_raw IS NOT NULL
+      AND CAST(end_station_id_raw AS VARCHAR) != ''
+      AND duration_sec >= 90           -- At least 90 seconds
+      AND duration_sec <= 14400        -- At most 4 hours (14400 sec)
     """
     
     # Get input row count
     stats['rows_in'] = con.execute(f"""
         SELECT COUNT(*) FROM read_csv_auto('{csv_path}', ignore_errors=true)
     """).fetchone()[0]
-    
+
     # Execute and save to parquet
     con.execute(f"""
         COPY ({query}) TO '{output_path}' (FORMAT PARQUET, COMPRESSION ZSTD)
     """)
+
+    # Count filtered rows by reason (using same raw CTE structure)
+    if schema == 'modern':
+        filter_query = f"""
+            WITH raw AS (
+                SELECT
+                    started_at::TIMESTAMP as started_at,
+                    ended_at::TIMESTAMP as ended_at,
+                    EPOCH(ended_at::TIMESTAMP - started_at::TIMESTAMP) as duration_sec,
+                    CAST(start_station_id AS VARCHAR) as start_station_id_raw,
+                    CAST(end_station_id AS VARCHAR) as end_station_id_raw
+                FROM read_csv_auto('{csv_path}', ignore_errors=true)
+            )
+            SELECT
+                SUM(CASE WHEN started_at IS NULL OR ended_at IS NULL THEN 1 ELSE 0 END) as invalid_timestamp,
+                SUM(CASE WHEN start_station_id_raw IS NULL OR start_station_id_raw = ''
+                         OR end_station_id_raw IS NULL OR end_station_id_raw = '' THEN 1 ELSE 0 END) as missing_station,
+                SUM(CASE WHEN duration_sec < 90 AND duration_sec >= 0 THEN 1 ELSE 0 END) as duration_too_short,
+                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long
+            FROM raw
+        """
+    else:
+        # Legacy schema - duration comes from tripduration column
+        duration_col = 'tripduration' if schema == 'legacy' else '"Trip Duration"'
+        start_col = '"start station id"' if schema == 'legacy' else '"Start Station ID"'
+        end_col = '"end station id"' if schema == 'legacy' else '"End Station ID"'
+        time_col = 'starttime' if schema == 'legacy' else '"Start Time"'
+
+        filter_query = f"""
+            WITH raw AS (
+                SELECT
+                    TRY_CAST({time_col} AS TIMESTAMP) as started_at,
+                    {duration_col}::INTEGER as duration_sec,
+                    CAST({start_col} AS VARCHAR) as start_station_id_raw,
+                    CAST({end_col} AS VARCHAR) as end_station_id_raw
+                FROM read_csv_auto('{csv_path}', ignore_errors=true)
+            )
+            SELECT
+                SUM(CASE WHEN started_at IS NULL THEN 1 ELSE 0 END) as invalid_timestamp,
+                SUM(CASE WHEN start_station_id_raw IS NULL OR start_station_id_raw = ''
+                         OR end_station_id_raw IS NULL OR end_station_id_raw = '' THEN 1 ELSE 0 END) as missing_station,
+                SUM(CASE WHEN duration_sec < 90 AND duration_sec >= 0 THEN 1 ELSE 0 END) as duration_too_short,
+                SUM(CASE WHEN duration_sec > 14400 THEN 1 ELSE 0 END) as duration_too_long
+            FROM raw
+        """
+
+    try:
+        filter_result = con.execute(filter_query).fetchone()
+        stats['rows_filtered'] = {
+            'invalid_timestamp': filter_result[0] or 0,
+            'missing_station': filter_result[1] or 0,
+            'duration_too_short': filter_result[2] or 0,
+            'duration_too_long': filter_result[3] or 0,
+        }
+    except Exception as e:
+        # If filter query fails, just log zeros
+        pass
     
     # Get output stats
     result = con.execute(f"""
@@ -381,7 +448,9 @@ def main():
             total_out += stats['rows_out']
             
             match_pct = 100 * (stats['station_match']['direct'] + stats['station_match']['crosswalk']) / max(stats['rows_out'], 1)
-            print(f"    {stats['rows_in']:,} → {stats['rows_out']:,} rows | {match_pct:.1f}% stations matched")
+            filtered = stats['rows_in'] - stats['rows_out']
+            filter_pct = 100 * filtered / max(stats['rows_in'], 1)
+            print(f"    {stats['rows_in']:,} → {stats['rows_out']:,} rows ({filter_pct:.1f}% filtered) | {match_pct:.1f}% stations matched")
             
         except Exception as e:
             print(f"    ✗ Error: {e}")

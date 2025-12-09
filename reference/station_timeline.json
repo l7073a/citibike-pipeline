@@ -1,0 +1,905 @@
+{
+  "total_stations": 2598,
+  "stations": [
+    {
+      "station_id": "7540.02",
+      "name": "E 114 St & 1 Ave",
+      "lat": 40.794566,
+      "lng": -73.936254,
+      "first_seen": "2019-01-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "7311.02",
+      "name": "Amsterdam Ave & W 79 St",
+      "lat": 40.782939,
+      "lng": -73.978651,
+      "first_seen": "2019-01-01",
+      "last_seen": "2025-06-01",
+      "months_active": 47
+    },
+    {
+      "station_id": "SYS035",
+      "name": "Pier 40 Dock Station",
+      "lat": 40.72865963236461,
+      "lng": -74.0119797096122,
+      "first_seen": "2019-02-01",
+      "last_seen": "2023-12-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "7738.04",
+      "name": "Adam Clayton Powell Blvd & W 126 St",
+      "lat": 40.809495,
+      "lng": -73.947765,
+      "first_seen": "2019-02-01",
+      "last_seen": "2025-06-01",
+      "months_active": 58
+    },
+    {
+      "station_id": "5523.02",
+      "name": "Stanton St & Chrystie St",
+      "lat": 40.722293,
+      "lng": -73.991475,
+      "first_seen": "2019-03-01",
+      "last_seen": "2025-06-01",
+      "months_active": 56
+    },
+    {
+      "station_id": "7858.02",
+      "name": "Bergen Ave & E 152 St",
+      "lat": 40.817166,
+      "lng": -73.914737,
+      "first_seen": "2019-03-01",
+      "last_seen": "2025-06-01",
+      "months_active": 45
+    },
+    {
+      "station_id": "6839.1",
+      "name": "Grand Army Plaza & Central Park S",
+      "lat": 40.764397,
+      "lng": -73.973715,
+      "first_seen": "2019-04-01",
+      "last_seen": "2024-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6912.01",
+      "name": "7 Ave & Central Park South",
+      "lat": 40.76674,
+      "lng": -73.979068,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4124.04",
+      "name": "Verona Pl & Fulton St",
+      "lat": 40.680356,
+      "lng": -73.947679,
+      "first_seen": "2019-04-01",
+      "last_seen": "2023-12-01",
+      "months_active": 49
+    },
+    {
+      "station_id": "7756.1",
+      "name": "St. Nicholas Ave & W 126 St",
+      "lat": 40.811432,
+      "lng": -73.951878,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4936.01",
+      "name": "Front St & Washington St",
+      "lat": 40.702551,
+      "lng": -73.989402,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 34
+    },
+    {
+      "station_id": "7735.23",
+      "name": "E 128 St & Madison Ave",
+      "lat": 40.80756,
+      "lng": -73.939182,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "5297.02",
+      "name": "Vesey Pl & River Terrace",
+      "lat": 40.715338,
+      "lng": -74.016584,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "5300.06",
+      "name": "Union Ave & Jackson St",
+      "lat": 40.716075,
+      "lng": -73.952029,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "5164.04",
+      "name": "Broadway & Berry St",
+      "lat": 40.710446,
+      "lng": -73.965251,
+      "first_seen": "2019-04-01",
+      "last_seen": "2022-09-01",
+      "months_active": 35
+    },
+    {
+      "station_id": "7971.07",
+      "name": "W 147 St & Adam Clayton Powell Blvd",
+      "lat": 40.82281,
+      "lng": -73.937413,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 47
+    },
+    {
+      "station_id": "4461.04",
+      "name": "DeKalb Ave & Vanderbilt Ave",
+      "lat": 40.689407,
+      "lng": -73.968855,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4732.04",
+      "name": "Carlton Ave & Park Ave",
+      "lat": 40.695807,
+      "lng": -73.973556,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 50
+    },
+    {
+      "station_id": "5746.14",
+      "name": "E 11 St & 1 Ave",
+      "lat": 40.729538,
+      "lng": -73.984267,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4617.01",
+      "name": "Lewis Ave & Kosciuszko St",
+      "lat": 40.692371,
+      "lng": -73.937054,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "SYS014",
+      "name": "NYCBS DEPOT - DELANCEY",
+      "lat": 40.71644423134479,
+      "lng": -73.9823305606842,
+      "first_seen": "2019-04-01",
+      "last_seen": "2022-09-01",
+      "months_active": 31
+    },
+    {
+      "station_id": "4608.01",
+      "name": "Broadway & Kosciuszko St",
+      "lat": 40.69329,
+      "lng": -73.92852,
+      "first_seen": "2019-04-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4107.13",
+      "name": "Dean St & Franklin Ave",
+      "lat": 40.677592,
+      "lng": -73.955637,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "SYS037",
+      "name": "NYCBS DEPOT - PITT",
+      "lat": 40.71687764223751,
+      "lng": -73.98375482414849,
+      "first_seen": "2019-05-01",
+      "last_seen": "2021-07-01",
+      "months_active": 11
+    },
+    {
+      "station_id": "7463.09",
+      "name": "E 103 St & Lexington Ave",
+      "lat": 40.790305,
+      "lng": -73.947558,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "4404.10",
+      "name": "Bond St & Bergen St",
+      "lat": 40.6849668,
+      "lng": -73.98620772,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "5303.08",
+      "name": "Canal St & Rutgers St",
+      "lat": 40.714275,
+      "lng": -73.9899,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "SYS033",
+      "name": "Pier 40 X2",
+      "lat": 40.728487,
+      "lng": -74.011693,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 51
+    },
+    {
+      "station_id": "4614.04",
+      "name": "Atlantic Ave & Furman St",
+      "lat": 40.691652,
+      "lng": -73.999979,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "7655.22",
+      "name": "Lenox Ave & W 117 St",
+      "lat": 40.802557,
+      "lng": -73.949078,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 56
+    },
+    {
+      "station_id": "5010.02",
+      "name": "Willoughby Ave & Wyckoff Ave",
+      "lat": 40.705614,
+      "lng": -73.92153,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "4386.05",
+      "name": "Fulton St & Clermont Ave",
+      "lat": 40.684157,
+      "lng": -73.969223,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 50
+    },
+    {
+      "station_id": "7720.03",
+      "name": "Lenox Ave & W 126 St",
+      "lat": 40.808442,
+      "lng": -73.945209,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 59
+    },
+    {
+      "station_id": "8198.05",
+      "name": "Shakespeare Ave & W 169 St",
+      "lat": 40.839312,
+      "lng": -73.922423,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 49
+    },
+    {
+      "station_id": "7640.04",
+      "name": "E 118 St & Madison Ave",
+      "lat": 40.801487,
+      "lng": -73.944251,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "5204.05",
+      "name": "S 4 St & Wythe Ave",
+      "lat": 40.712858,
+      "lng": -73.965902,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6717.06",
+      "name": "9 Ave & W 45 St",
+      "lat": 40.760193,
+      "lng": -73.991255,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "4546.05",
+      "name": "Washington Park",
+      "lat": 40.691782,
+      "lng": -73.97373,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7670.09",
+      "name": "Adam Clayton Powell Blvd & W 118 St",
+      "lat": 40.804372,
+      "lng": -73.951475,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "5980.07",
+      "name": "E 17 St & Broadway",
+      "lat": 40.73705,
+      "lng": -73.990093,
+      "first_seen": "2019-05-01",
+      "last_seen": "2023-12-01",
+      "months_active": 47
+    },
+    {
+      "station_id": "4637.06",
+      "name": "Fulton St & Adams St",
+      "lat": 40.692418,
+      "lng": -73.989495,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "6839.04",
+      "name": "E 58 St & Madison Ave",
+      "lat": 40.763026,
+      "lng": -73.972095,
+      "first_seen": "2019-05-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4327.09",
+      "name": "Putnam Ave & Nostrand Ave",
+      "lat": 40.68402,
+      "lng": -73.94977,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 51
+    },
+    {
+      "station_id": "5616.01",
+      "name": "E 9 St & Avenue C",
+      "lat": 40.725213,
+      "lng": -73.977688,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4066.15",
+      "name": "Bedford Ave & Bergen St",
+      "lat": 40.676368,
+      "lng": -73.952918,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "3704.01",
+      "name": "Franklin Ave & Empire Blvd",
+      "lat": 40.66314,
+      "lng": -73.96057,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 23
+    },
+    {
+      "station_id": "7456.03",
+      "name": "E 106 St & 1 Ave",
+      "lat": 40.789253,
+      "lng": -73.939562,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4380.08",
+      "name": "Henry St & Degraw St",
+      "lat": 40.684751,
+      "lng": -73.999173,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4010.13",
+      "name": "Plaza St West & Flatbush Ave",
+      "lat": 40.675021,
+      "lng": -73.971115,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "5659.05",
+      "name": "E 10 St & Avenue A",
+      "lat": 40.727408,
+      "lng": -73.98142,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7753.13",
+      "name": "Lenox Ave & W 130 St",
+      "lat": 40.810792,
+      "lng": -73.943068,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 57
+    },
+    {
+      "station_id": "SYS036",
+      "name": "Kiosk in a box Jersey",
+      "lat": 40.728483,
+      "lng": -74.011805,
+      "first_seen": "2019-06-01",
+      "last_seen": "2020-05-01",
+      "months_active": 9
+    },
+    {
+      "station_id": "7543.15",
+      "name": "3 Ave & E 112 St",
+      "lat": 40.795508,
+      "lng": -73.941606,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "4151.01",
+      "name": "Smith St & 3 St",
+      "lat": 40.678724,
+      "lng": -73.995991,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6190.08",
+      "name": "9 Ave & W 18 St",
+      "lat": 40.743174,
+      "lng": -74.003664,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6389.03",
+      "name": "E 39 St & 3 Ave",
+      "lat": 40.748901,
+      "lng": -73.976049,
+      "first_seen": "2019-06-01",
+      "last_seen": "2020-09-01",
+      "months_active": 11
+    },
+    {
+      "station_id": "5553.1",
+      "name": "E 2 St & Avenue A",
+      "lat": 40.723077,
+      "lng": -73.985836,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "3847.04",
+      "name": "Carroll St & Franklin Ave",
+      "lat": 40.667941,
+      "lng": -73.9588,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 51
+    },
+    {
+      "station_id": "3696.05",
+      "name": "Rogers Ave & Sterling St",
+      "lat": 40.663062,
+      "lng": -73.953875,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "4392.04",
+      "name": "Putnam Ave & Throop Ave",
+      "lat": 40.685153,
+      "lng": -73.94111,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "5755.14",
+      "name": "University Pl & E 8 St",
+      "lat": 40.731437,
+      "lng": -73.994903,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6004.06",
+      "name": "E 27 St & 1 Ave",
+      "lat": 40.739445,
+      "lng": -73.976806,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "5712.03",
+      "name": "Cooper Square & Astor Pl",
+      "lat": 40.729515,
+      "lng": -73.990753,
+      "first_seen": "2019-06-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "6578.01",
+      "name": "W 34 St & 11 Ave",
+      "lat": 40.755942,
+      "lng": -74.002116,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "7499.05",
+      "name": "Central Park W & W 96 St",
+      "lat": 40.79127,
+      "lng": -73.964839,
+      "first_seen": "2019-07-01",
+      "last_seen": "2020-08-01",
+      "months_active": 9
+    },
+    {
+      "station_id": "6876.04",
+      "name": "Central Park S & 6 Ave",
+      "lat": 40.765909,
+      "lng": -73.976342,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "7741.01",
+      "name": "Morningside Ave & W 123 St",
+      "lat": 40.81,
+      "lng": -73.95515,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7830.03",
+      "name": "Prospect Ave & E 151 St",
+      "lat": 40.814232,
+      "lng": -73.903927,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 48
+    },
+    {
+      "station_id": "7662.13",
+      "name": "Lexington Ave & E 127 St",
+      "lat": 40.805726,
+      "lng": -73.936322,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "7922.01",
+      "name": "Faile St & Garrison Ave",
+      "lat": 40.820578,
+      "lng": -73.888271,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 44
+    },
+    {
+      "station_id": "7488.24",
+      "name": "E 102 St & Park Ave",
+      "lat": 40.790483,
+      "lng": -73.950331,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "3651.04",
+      "name": "West Drive & Prospect Park West",
+      "lat": 40.661063,
+      "lng": -73.979453,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "3993.03",
+      "name": "Sterling Pl & Bedford Ave",
+      "lat": 40.672695,
+      "lng": -73.954131,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4437.01",
+      "name": "3 Ave & Schermerhorn St",
+      "lat": 40.686832,
+      "lng": -73.979677,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4190.06",
+      "name": "Grand Ave & Bergen St",
+      "lat": 40.678045,
+      "lng": -73.962408,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7116.04",
+      "name": "W 67 St & Broadway",
+      "lat": 40.774925,
+      "lng": -73.982666,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4656.03",
+      "name": "Pulaski St & Marcus Garvey Blvd",
+      "lat": 40.693398,
+      "lng": -73.939877,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4623.02",
+      "name": "Knickerbocker Ave & Halsey St",
+      "lat": 40.693,
+      "lng": -73.90824,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7658.13",
+      "name": "Frederick Douglass Blvd & W 115 St",
+      "lat": 40.803865,
+      "lng": -73.955931,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "6996.01",
+      "name": "30 Ave & 21 St",
+      "lat": 40.770374,
+      "lng": -73.928608,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "3987.06",
+      "name": "5 Ave & 3 St",
+      "lat": 40.672816,
+      "lng": -73.983524,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 55
+    },
+    {
+      "station_id": "5593.04",
+      "name": "E 4 St & 2 Ave",
+      "lat": 40.726281,
+      "lng": -73.98978,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    },
+    {
+      "station_id": "4354.07",
+      "name": "Atlantic Ave & Fort Greene Pl",
+      "lat": 40.683826,
+      "lng": -73.976323,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "6656.05",
+      "name": "21 St & 38 Ave",
+      "lat": 40.757631,
+      "lng": -73.939122,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "8216.02",
+      "name": "Waterloo Pl & Crotona Park East",
+      "lat": 40.839194,
+      "lng": -73.888587,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 43
+    },
+    {
+      "station_id": "5178.06",
+      "name": "Graham Ave & Grand St",
+      "lat": 40.711863,
+      "lng": -73.944024,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7409.08",
+      "name": "W 84 St & Broadway",
+      "lat": 40.786795,
+      "lng": -73.977112,
+      "first_seen": "2019-07-01",
+      "last_seen": "2023-08-01",
+      "months_active": 44
+    },
+    {
+      "station_id": "7688.12",
+      "name": "Frederick Douglass Blvd & W 117 St",
+      "lat": 40.805159,
+      "lng": -73.954692,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 57
+    },
+    {
+      "station_id": "5481.04",
+      "name": "Driggs Ave & Lorimer St",
+      "lat": 40.721791,
+      "lng": -73.950415,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "4222.02",
+      "name": "Lefferts Pl & Franklin Ave",
+      "lat": 40.680342,
+      "lng": -73.955769,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 52
+    },
+    {
+      "station_id": "8041.07",
+      "name": "E 161 St & River Ave",
+      "lat": 40.827883,
+      "lng": -73.927111,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 48
+    },
+    {
+      "station_id": "4784.02",
+      "name": "Greene Av & Myrtle Av",
+      "lat": 40.698568,
+      "lng": -73.918877,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7893.05",
+      "name": "Adam Clayton Powell Blvd & W 141 St",
+      "lat": 40.819241,
+      "lng": -73.941057,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 51
+    },
+    {
+      "station_id": "6960.1",
+      "name": "3 Ave & E 71 St",
+      "lat": 40.768737,
+      "lng": -73.961199,
+      "first_seen": "2019-07-01",
+      "last_seen": "2024-06-01",
+      "months_active": 50
+    },
+    {
+      "station_id": "4812.02",
+      "name": "Nassau St & Navy St",
+      "lat": 40.698399,
+      "lng": -73.980689,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 51
+    },
+    {
+      "station_id": "8044.09",
+      "name": "Intervale Ave & Kelly St",
+      "lat": 40.827301,
+      "lng": -73.896372,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 44
+    },
+    {
+      "station_id": "6450.05",
+      "name": "8 Ave & W 31 St",
+      "lat": 40.750585,
+      "lng": -73.994685,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "4054.02",
+      "name": "Wolcott St & Dwight St",
+      "lat": 40.675327,
+      "lng": -74.01007,
+      "first_seen": "2019-07-01",
+      "last_seen": "2023-12-01",
+      "months_active": 47
+    },
+    {
+      "station_id": "4947.04",
+      "name": "Central Ave & Flushing Ave",
+      "lat": 40.702831,
+      "lng": -73.9333,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 53
+    },
+    {
+      "station_id": "7682.01",
+      "name": "Park Ave & E 124 St",
+      "lat": 40.804556,
+      "lng": -73.939686,
+      "first_seen": "2019-07-01",
+      "last_seen": "2025-06-01",
+      "months_active": 54
+    }
+  ]
+}
