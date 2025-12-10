@@ -450,3 +450,478 @@ Solution: Standardized on `lon` everywhere:
 - Installed **DBeaver** for SQL GUI exploration
 - **Environment fix**: Added `~/Library/Python/3.9/bin` to PATH in `~/.zshrc`
   - Fixes `jupyter notebook` command not found issue
+
+### Dec 9, 2024 - Session 6 (continued)
+- **Fixed 2018 duplicate data issue**:
+  - 2018 had both combined files AND split files (_1, _2) = doubled trip count
+  - Removed 21 split files, reprocessed with 12 combined files only
+  - 2018 now correctly shows ~17.4M trips (was incorrectly showing ~35M)
+- **Data quality checks** on 2013-2018 (71M trips):
+  - Duration: Consistent 10-14 min median across all years
+  - Coordinates: <200 trips outside NYC bounds, 0 missing
+  - Round trips: 1.8-2.5% (normal for bike share)
+  - Member split: 84-90% members
+- **Station mapping investigation**:
+  - 95.26% crosswalk, 4.74% ghost, 0.00% unmatched
+  - Identified "false ghost" stations (renamed but not matched due to low name similarity)
+  - Example: "Pershing Square North" → "Park Ave & E 42 St" (0.0m distance, 36% name similarity)
+- **Fixed crosswalk builder** (`src/build_crosswalk.py`):
+  - **Tier 1**: <20m = match regardless of name (high confidence)
+  - **Tier 2 (NEW)**: 20-50m + >50% name similarity = match
+  - **Tier 3**: 50-150m + >60% name similarity = match (low confidence)
+  - **Tier 4**: >150m OR low similarity = ghost (no match)
+- **Added test station filtering** to pipeline:
+  - Filters out depot, test, "don't use", mobile, QC, and internal stations
+  - 13 patterns in `TEST_STATION_PATTERNS` list
+- **Created mapping report** (`src/mapping_report.py`):
+  - Analyzes station mappings for audit/transparency
+  - Shows match types: coordinate-only (renamed), name-only (moved), both, ghost
+  - Reports coordinate drift and name similarity distributions
+  - Identifies renamed stations and true ghost stations
+
+#### Session 6 - Bug Found in Mapping Report (NEEDS FIX)
+
+**Bug discovered:** The mapping report (`src/mapping_report.py`) has a year filtering bug.
+
+**Problem:**
+- The DuckDB query groups by (station_id, station_name, lat, lon) across ALL years
+- Uses `MIN(filename) as sample_file` to get a representative file
+- Python then filters observations where `extract_year(sample_file) == requested_year`
+- BUT: If station 519 exists in 2013 AND 2014, `MIN(filename)` returns the 2013 file
+- So when filtering for year=2014, station 519 is excluded (its sample_file shows 2013)
+
+**Result:** Year-specific reports are broken:
+- 2014 report showed only 3 stations (should be ~330+)
+- 2018 report showed 66.9% ghost (way too high)
+
+**Fix needed:** Filter by year in SQL BEFORE grouping, not in Python after grouping.
+
+**Location:** `src/mapping_report.py`, function `get_unique_station_observations()`
+
+**Proposed fix:** Add year filter to the DuckDB query WHERE clause:
+```python
+# In the SQL query, add:
+WHERE filename LIKE '%{year}%'  # or use regex to extract year from filename
+```
+
+Or better: Extract year in SQL and filter there:
+```sql
+WHERE CAST(REGEXP_EXTRACT(filename, '(\d{4})', 1) AS INTEGER) = {year}
+```
+
+#### Mapping Report Results (2013-2019) - PARTIALLY INVALID
+
+Reports were generated but year filtering was broken:
+
+| Year | Stations Found | Status |
+|------|---------------|--------|
+| 2013 | 338 | ✓ Valid (first year, no prior data) |
+| 2014 | 3 | ✗ BUG - should be ~330+ |
+| 2015 | 156 | ⚠ Likely only new stations |
+| 2016 | 176 | ⚠ Likely only new stations |
+| 2017 | 199 | ⚠ Likely only new stations |
+| 2018 | 63 | ⚠ Likely only new stations |
+| 2019 | 221 | ⚠ Likely only new stations |
+
+**Files generated (in logs/):**
+- `station_profiles_YEAR_*.csv` - detailed profiles per station ID
+- `mapping_report_*.csv` - observation-level mapping details
+- `mapping_report_*.json` - summary statistics
+
+#### Next Steps (After Compacting)
+
+1. **Fix the mapping report bug** in `src/mapping_report.py`:
+   - Modify `get_unique_station_observations()` to filter by year in SQL
+   - Test with 2014 to verify fix (should see ~330+ stations, not 3)
+
+2. **Re-run mapping reports** for 2013-2019:
+   ```bash
+   python3 src/mapping_report.py --years 2013 --detail
+   python3 src/mapping_report.py --years 2014 --detail
+   # ... etc for 2015-2019
+   ```
+
+3. **Analyze cross-year trends** after valid reports generated
+
+4. **Consider duration filter change**: Currently 90s minimum, could increase to 120s (2 min)
+   - 90-120s trips are ~0.6-1.2% of data
+   - These are likely false starts/errors
+   - Can decide after reviewing mapping reports
+
+5. **Process pipeline** (create parquet files) AFTER mapping analysis complete
+
+#### Other Changes Made in Session 6
+
+1. **Crosswalk builder** (`src/build_crosswalk.py`) - improved matching tiers:
+   - Tier 1: <20m = match regardless of name
+   - Tier 2 (NEW): 20-50m + >50% name similarity = match
+   - Tier 3: 50-150m + >60% name similarity = match
+   - Tier 4: >150m OR low similarity = ghost
+
+2. **Pipeline** (`src/pipeline.py`) - added test station filtering:
+   - `TEST_STATION_PATTERNS` list with 13 patterns
+   - Filters: depot, test, "don't use", mobile, QC, tech stations
+   - Applied in WHERE clause of main query
+
+3. **Mapping report** (`src/mapping_report.py`) - added `--detail` flag:
+   - Generates `station_profiles_*.csv` with per-station-ID analysis
+   - Shows name variants, coordinate spread, mapping details
+   - Identifies stations with name changes or coordinate drift
+
+4. **Notebook** (`notebooks/explore_data.ipynb`) - updated map colors:
+   - Now has colors for years 2013-2025 (was only 2013-2015)
+   - Dynamic legend based on years present in data
+
+#### Data State
+
+- **Raw CSVs**: 352 files in `data/raw_csvs/`
+- **Processed parquet**: Currently only 2013 (from test earlier), need to clear and reprocess
+- **Crosswalk**: Updated with improved matching (3,480 matched, 131 ghosts)
+
+#### Commands for Next Session
+
+```bash
+# 1. Fix mapping report (edit src/mapping_report.py)
+
+# 2. Test fix on 2014
+python3 src/mapping_report.py --years 2014 --detail
+
+# 3. If fix works, run all years
+for year in 2013 2014 2015 2016 2017 2018 2019; do
+  python3 src/mapping_report.py --years $year --detail
+done
+
+# 4. After analysis, process pipeline
+python3 src/pipeline.py --year 2013
+python3 src/pipeline.py --year 2014
+# ... etc
+```
+
+### Dec 9, 2024 - Session 7 (continued)
+
+#### Mapping Report Bug Fixed
+
+Fixed the year filtering bug in `src/mapping_report.py`:
+- **Problem**: Year filter happened AFTER grouping, so `MIN(filename)` returned earliest year
+- **Fix**: Added `file_year` column extraction in SQL, filter in `cleaned` CTE BEFORE grouping
+- **Result**: 2014 now shows 345 observations (was 3)
+
+#### Mapping Reports Re-run (2013-2019) - Valid Results
+
+| Year | Observations | Matched | Ghost | Trip Coverage |
+|------|-------------|---------|-------|---------------|
+| 2013 | 377 | 92.3% | 7.7% | 95.8% |
+| 2014 | 345 | 93.9% | 6.1% | 96.1% |
+| 2015 | 504 | 94.8% | 5.2% | 96.3% |
+| 2016 | 663 | 93.5% | 6.5% | 96.8% |
+| 2017 | 819 | 93.5% | 6.5% | 97.2% |
+| 2018 | 922 | 84.6% | 15.4% | 97.5% |
+| 2019 | 1002 | 96.8% | 3.2% | 98.1% |
+
+2018 shows higher ghost observation count due to test/internal stations; trip coverage remains high.
+
+#### Test Station Filtering Added to Mapping Report
+
+Added `--include-test` flag (default: filter out test stations):
+- Filters NULL station names
+- Filters test patterns: depot, mobile, 8D ops, kiosk, etc.
+- Reduces noise in analysis
+
+#### Station ID Reuse Analysis - Key Findings
+
+Deep temporal analysis revealed different categories of "ID issues":
+
+**1. TRUE ID REUSE (Same ID, Different Locations, Overlapping Time)**
+
+| ID | Location 1 | Location 2 | Distance | Trips Affected |
+|----|------------|------------|----------|----------------|
+| 279 | Peck Slip & Front St | Sands St & Gold St | 1.8km | ~3,700 |
+| 2001 | Sands St & Navy St | 7 Ave & Farragut St | 565m | ~1,400 |
+
+These are the ONLY cases where trips may be mapped to wrong station. Total: ~5,000 trips out of 90M+ (0.005%).
+
+**2. Station Renaming (NOT a problem)**
+- IDs 517, 519: "Pershing Square" ↔ "E 41/42 St & Madison/Vanderbilt" - same location, name changed
+- Crosswalk handles these correctly via coordinate matching
+
+**3. ID Recycling (NOT a problem)**
+- ID 3016: "Mobile 01" (test) → "Kent Ave & N 7 St" (real) - test retired before reuse
+
+**4. Data Entry Errors (negligible)**
+- ID 160: 8 trips with lat=40.44 instead of 40.74 (33km error)
+
+**5. NULL Stations**
+- 2,497 trips in 2018 with NULL names scattered in Bronx - likely test/e-bike data
+
+#### Current Pipeline Architecture (ID-First Matching)
+
+```
+trip.station_id → crosswalk lookup → canonical_station
+```
+
+**Issue**: For ID reuse cases (279, 2001), the crosswalk has ONE entry per ID built from the most common usage. Trips to the "other" location get wrong canonical coords.
+
+**Raw coordinates exist in output** (`start_lat_raw`, `start_lon_raw`) but are NOT used for matching.
+
+#### Proposed Fix: Coordinate-First Matching (Not Yet Implemented)
+
+```
+trip.raw_coords → nearest canonical station (within 200m) → canonical_station
+                  ↓ (fallback if no match)
+trip.station_id → crosswalk lookup → canonical_station
+```
+
+**Benefits**:
+- Fixes ID reuse cases by using actual trip coordinates
+- Handles GPS precision variations naturally
+- Better for post-2020 data with high-precision coords
+
+**Tradeoffs**:
+- Requires Python spatial index (scipy cKDTree) preprocessing
+- ~2x slower than pure SQL joins
+- Added complexity
+
+**Decision**: Document and defer. Impact is 0.005% of trips. Will revisit after exploring 2020+ data.
+
+#### Data Quality Filtering Summary
+
+| Filter | Action | Trips Affected |
+|--------|--------|----------------|
+| NULL station names | Remove | ~2,500 |
+| Test stations | Remove | ~21,000 |
+| Data entry errors (>30km from any station) | Remove | ~10 |
+| Duration <90s or >4h | Remove | ~0.5-1% |
+| Date mismatch (parsed ≠ file month) | Remove | varies |
+
+#### Files Modified in Session 7
+
+1. `src/mapping_report.py`:
+   - Fixed year filtering bug (filter in SQL before grouping)
+   - Added `TEST_STATION_PATTERNS` and `build_test_station_sql_filter()`
+   - Added `--include-test` flag (default: exclude test stations)
+   - Added NULL station name filtering
+
+#### 2020-2025 Data Analysis
+
+**2020-2021 Mapping Results:**
+
+| Year | Observations | Matched | Ghost | Trip Coverage | Coord Drift Median |
+|------|-------------|---------|-------|---------------|-------------------|
+| 2020 | 1,760 | 97.7% | 2.3% | 98.3% | 0.1m |
+| 2021 | 2,205 | 97.7% | 2.3% | 98.5% | 0.1m |
+
+**2022-2025 Spot Check:**
+
+| Year | Trips | Stations | Bike Types | Crosswalk Coverage |
+|------|-------|----------|------------|-------------------|
+| 2022 | 29.8M | 1,749 | 2 | 100% |
+| 2023 | 35.1M | 2,347 | 2 | 100% |
+| 2024 | 44.3M | 2,378 | 2 | 100% |
+| 2025 | 43.7M | 2,342 | 2 | 100% |
+
+**Key findings:**
+- Station IDs in 2020+ are decimal format (e.g., `6432.09`), not integers
+- All 2020+ station IDs exist in crosswalk - 100% coverage
+- Coordinate precision is consistent (~11 chars)
+- Classic bikes have slightly MORE coord variation than e-bikes (contrary to expectation)
+
+**GPS Variation by Bike Type (2021):**
+
+| Type | Stations | Trips | Avg Coord Variants | % With Variants |
+|------|----------|-------|-------------------|-----------------|
+| classic_bike | 1,556 | 18.5M | 1.10 | 9.2% |
+| electric_bike | 1,550 | 8.6M | 1.08 | 7.8% |
+
+#### Coordinate Outliers Analysis
+
+**Trips outside NYC bbox (2020-2025):** Only 17 trips out of 199M (0.000009%)
+
+| Year | Outside NYC | What They Are |
+|------|-------------|---------------|
+| 2020 | 1 | Montreal lab station (MTL-ECO5-LAB) |
+| 2021-2024 | 0 | None |
+| 2025 | 16 | LA Metro demo stations |
+
+**These are test stations, not GPS glitches.** Added to filter patterns:
+- `mtl-eco`, `lab` - Montreal lab stations
+- `la metro`, `demo` - LA Metro demo stations
+
+**High coordinate "drift" explained:**
+- The 14km drift in station profiles was caused by single outlier trips (1 out of 17K)
+- These are GPS glitches during trip recording, not systematic issues
+- Example: Station 4214.03 had 17,214 trips at correct location, 1 trip 14km away
+- Impact: ~50 trips across entire dataset - negligible
+
+#### Data Quality Issues Found in Modern Data
+
+1. **Tab characters in station names**: `"Clinton St\t& Cherry St"` - literal `\t`
+2. **Station name variations**: Same ID with slight typos (extra spaces, etc.)
+3. **Pershing Square still renaming**: Same pattern as legacy data
+
+#### Final Test Station Filter Patterns
+
+```python
+TEST_STATION_PATTERNS = [
+    "don't use", "dont use", "do not use",  # Explicitly marked
+    "nycbs depot", "nycbs test",             # NYC Bike Share internal
+    "mobile 01", "mobile 02",                # Mobile test stations
+    "8d ops", "8d qc", "8d mobile",          # 8D (vendor) test stations
+    "gow tech", "tech shop", "ssp tech",     # Tech/maintenance stations
+    "kiosk in a box", "mlswkiosk",           # Test kiosks
+    "facility", "warehouse",                  # Internal facilities
+    "temp", ".temp",                          # Temporary stations
+    "deployment",                             # Deployment testing
+    "mtl-eco", "lab",                         # Montreal lab stations (2020)
+    "la metro", "demo",                       # LA Metro demo stations (2025)
+]
+```
+
+#### Architecture Decision: Keep ID-First Matching
+
+**Rationale:**
+- Coordinate-first matching would only help ~5K trips (ID reuse cases 279, 2001)
+- That's 0.005% of total data
+- Modern data (2020+) has no ID reuse issues
+- GPS variation is minimal and not systematically tied to e-bikes
+- Added complexity not justified by benefit
+
+**Current pipeline remains:**
+```
+trip.station_id → crosswalk lookup → canonical_station
+```
+
+**Known limitations (documented, not fixed):**
+- IDs 279, 2001: ~5K trips may map to wrong station due to historical ID reuse
+- Single-trip GPS glitches: ~50 trips with coords far from their station
+
+#### Files Modified in Session 7
+
+1. `src/mapping_report.py`:
+   - Fixed year filtering bug
+   - Added test station filtering
+   - Added `--include-test` flag
+
+2. `src/pipeline.py`:
+   - Added `mtl-eco`, `lab`, `la metro`, `demo` to test station patterns
+
+3. `CLAUDE.md`:
+   - Comprehensive documentation of all findings
+
+#### Data Ready for Processing
+
+**Total raw data:**
+- 352 CSV files in `data/raw_csvs/`
+- Years 2013-2025
+- ~200M trips estimated
+
+**Crosswalk:**
+- 3,611 entries (1,077 integer + 2,534 decimal IDs)
+- 100% coverage of all years
+
+**Processing command:**
+```bash
+# Process all years
+python3 src/pipeline.py --year 2013
+python3 src/pipeline.py --year 2014
+# ... through 2025
+
+# Or process a range
+for year in {2013..2025}; do
+    python3 src/pipeline.py --year $year
+done
+```
+
+### Dec 9, 2024 - Session 8 (Final Processing)
+
+#### Complete Dataset Processed
+
+Successfully processed all 13 years of Citi Bike data:
+
+| Year | Trips | Filtered | Match Rate | Ghost % | Suspicious Mappings |
+|------|------:|----------|------------|---------|---------------------|
+| 2013 | 5,580,769 | 0.6% | 95.9% | 4.1% | 0 |
+| 2014 | 8,042,497 | 0.5% | 96.1% | 3.9% | 0 |
+| 2015 | 9,878,177 | 0.6% | 96.3% | 3.7% | 0 |
+| 2016 | 13,762,788 | 0.6% | 96.8% | 3.2% | 0 |
+| 2017 | 16,255,958 | 0.7% | 97.2% | 2.8% | 0 |
+| 2018 | 17,404,586 | 0.8% | 97.5% | 2.5% | 0 |
+| 2019 | 20,391,559 | 0.8% | 98.1% | 1.9% | 0 |
+| 2020 | 19,309,183 | 1.3% | 98.3% | 1.7% | 0 |
+| 2021 | 26,724,796 | 1.5% | 98.5% | 1.5% | 0 |
+| 2022 | 29,324,199 | 1.7% | 98.5% | 1.5% | 0 |
+| 2023 | 34,395,973 | 2.0% | 98.9% | 1.1% | 0 |
+| 2024 | 43,515,161 | 1.8% | 99.4% | 0.6% | 0 |
+| 2025 | 42,976,831 | 1.6% | 99.8% | 0.2% | 0 |
+| **TOTAL** | **287,562,477** | | | | **0** |
+
+#### Output Statistics
+
+- **352 parquet files** in `data/processed/`
+- **11 GB** total size (compressed from ~40 GB raw CSV)
+- **122 log files** tracking all processing runs
+
+#### Sanity Checks Passed
+
+1. **Growth trend**: 10x increase from 2013 to 2025 ✓
+2. **Seasonal pattern**: Peak in September (2.6M), trough in February (1.0M) ✓
+3. **COVID impact**: Clear dip in April 2020 ✓
+4. **E-bike adoption**: 71% of trips in last 12 months ✓
+5. **Reproducibility**: Scripts produce identical output when re-run ✓
+
+#### Visualization Created
+
+`logs/citibike_analysis.png` - Three-panel chart showing:
+1. Total monthly ridership (2013-2025)
+2. Seasonal pattern by month of year
+3. Classic vs electric bike split
+
+#### Scripts Verified as Reproducible
+
+| Script | Test | Result |
+|--------|------|--------|
+| `fetch_stations.py` | Fresh API fetch | Same 2,318 stations |
+| `build_crosswalk.py` | Rebuild from CSVs | Same 3,611 mappings |
+| `pipeline.py` | Reprocess sample | Identical output |
+
+#### Data Quality Confidence: HIGH
+
+**What we filtered (appropriately):**
+- Test/internal stations (depot, mobile, lab, demo)
+- Invalid trips (<90s or >4h duration)
+- Missing station IDs
+- Date parsing errors
+
+**Known limitations (documented, acceptable):**
+- ~5K trips (0.002%) may map to wrong station due to ID reuse
+- ~50 trips have GPS glitches
+- 131 ghost stations preserved with historical coords
+
+#### Next Steps
+
+The ETL pipeline is complete. Data is ready for:
+1. Analysis and visualization
+2. Building predictive models
+3. Creating dashboards
+4. Answering research questions
+
+#### Querying the Data
+
+```python
+import duckdb
+con = duckdb.connect()
+
+# Basic query
+con.execute('''
+    SELECT YEAR(started_at) as year, COUNT(*) as trips
+    FROM "data/processed/*.parquet"
+    GROUP BY 1 ORDER BY 1
+''').fetchall()
+
+# Station popularity
+con.execute('''
+    SELECT start_station_name, COUNT(*) as trips
+    FROM "data/processed/*.parquet"
+    GROUP BY 1 ORDER BY 2 DESC
+    LIMIT 10
+''').fetchall()
+```

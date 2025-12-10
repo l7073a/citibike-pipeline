@@ -8,8 +8,11 @@ data/processed/*
 !data/raw_csvs/.gitkeep
 !data/processed/.gitkeep
 
-# Logs (optional - you may want to commit these for auditability)
-# logs/*.json
+# Logs (exclude bulk JSON logs, keep key artifacts)
+logs/*.json
+logs/*.csv
+!logs/citibike_analysis.png
+!logs/monthly_trips.json
 
 # Python
 __pycache__/

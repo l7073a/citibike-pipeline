@@ -58,6 +58,39 @@ REFERENCE_DIR = Path(__file__).parent.parent / "reference"
 DATA_DIR = Path(__file__).parent.parent / "data"
 LOGS_DIR = Path(__file__).parent.parent / "logs"
 
+# Test/internal station patterns to filter out
+# These are depot locations, test kiosks, valet services, and internal operations stations
+TEST_STATION_PATTERNS = [
+    "don't use", "dont use", "do not use",  # Explicitly marked
+    "nycbs depot", "nycbs test",             # NYC Bike Share internal
+    "mobile 01", "mobile 02",                # Mobile test stations
+    "8d ops", "8d qc", "8d mobile",          # 8D (vendor) test stations
+    "gow tech", "tech shop", "ssp tech",     # Tech/maintenance stations
+    "kiosk in a box", "mlswkiosk",           # Test kiosks
+    "facility", "warehouse",                  # Internal facilities
+    "temp", ".temp",                          # Temporary stations
+    "deployment",                             # Deployment testing
+    "mtl-eco", "lab",                         # Montreal lab stations (2020)
+    "la metro", "demo",                       # LA Metro demo stations (2025)
+]
+
+def is_test_station(name: str) -> bool:
+    """Check if a station name matches test/internal patterns."""
+    if not name:
+        return False
+    name_lower = name.lower()
+    return any(pattern in name_lower for pattern in TEST_STATION_PATTERNS)
+
+def get_test_station_sql_filter() -> str:
+    """Generate SQL filter to exclude test stations."""
+    conditions = []
+    for pattern in TEST_STATION_PATTERNS:
+        # Escape single quotes for SQL
+        escaped = pattern.replace("'", "''")
+        conditions.append(f"LOWER(start_station_name) NOT LIKE '%{escaped}%'")
+        conditions.append(f"LOWER(end_station_name) NOT LIKE '%{escaped}%'")
+    return " AND ".join(conditions)
+
 
 def detect_schema(csv_path: Path) -> str:
     """Detect which schema a CSV file uses."""
@@ -264,6 +297,10 @@ def process_file(
     else:
         date_sanity_filter = ""
 
+    # Build test station filter
+    test_station_filter = f"""
+      AND {get_test_station_sql_filter()}"""
+
     # Main transformation query with station resolution
     query = f"""
     WITH raw AS (
@@ -386,6 +423,7 @@ def process_file(
       AND duration_sec >= 90           -- At least 90 seconds
       AND duration_sec <= 14400        -- At most 4 hours (14400 sec)
       {date_sanity_filter}
+      {test_station_filter}
     """
     
     # Execute and save to parquet

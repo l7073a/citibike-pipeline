@@ -1,0 +1,6 @@
+ride_id,rideable_type,started_at,ended_at,start_station_name,start_station_id,end_station_name,end_station_id,start_lat,start_lng,end_lat,end_lng,member_casual
+8E865410DBDE0CA9,electric_bike,2024-01-01 13:00:04.563,2024-01-01 13:04:04.652,3 St & 3 Ave,4028.03,Carroll St & Smith St,4225.14,40.6750705,-73.98775226,40.680611,-73.99475825,casual
+0403D0B3FC9CA77D,electric_bike,2024-01-08 19:36:43.520,2024-01-08 19:53:16.266,Franklin Ave & St Marks Ave,4107.05,Bedford Ave & Bergen St,4066.15,40.6758324,-73.9561677,40.676368,-73.952918,casual
+F6DE7BB42FF550BE,electric_bike,2024-01-12 15:00:41.580,2024-01-12 15:36:29.622,W 67 St & Broadway,7116.04,Central Park W & W 103 St,7577.27,40.77492513,-73.98266566,40.79558954105342,-73.96188408136368,casual
+84A995BFD98030D4,classic_bike,2024-01-12 16:52:19.025,2024-01-12 17:17:29.773,Central Park West & W 68 St,7079.06,E 5 St & Ave C,5545.04,40.7734066,-73.97782542,40.72299208,-73.97995466,member
+7BBEAD4F2B535813,electric_bike,2024-01-05 19:50:19.202,2024-01-05 20:34:42.517,W 67 St & Broadway,7116.04,Ave A & E 14 St,5779.11,40.77492513,-73.98266566,40.73031071000895,-73.98047178983688,member

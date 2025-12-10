@@ -208,17 +208,40 @@ def match_station(
                 'distance_m': round(distance_m, 1),
             }
     
-    # Apply minimum thresholds
-    if best_match and best_match['name_score'] >= min_name_score:
-        # Assign confidence level
-        if best_match['match_score'] >= 80 and best_match['distance_m'] < 50:
+    # Apply matching rules with clear tiers:
+    #
+    # Tier 1: <20m distance = same location (match regardless of name)
+    #         Example: "Pershing Square North" → "Park Ave & E 42 St" (0.0m)
+    #
+    # Tier 2: 20-50m distance AND >50% name similarity = likely same station
+    #         Example: "W 14 St & The High Line" → "10 Ave & W 14 St" (24m, 56%)
+    #
+    # Tier 3: 50-150m distance AND >60% name similarity = station may have moved
+    #         Example: slight relocations with similar naming
+    #
+    # Tier 4: >150m OR low name similarity = NO MATCH (ghost station)
+    #
+    if best_match:
+        dist = best_match['distance_m']
+        name_score = best_match['name_score']
+
+        # Tier 1: Very close = definite match
+        if dist < 20:
             best_match['match_confidence'] = 'high'
-        elif best_match['match_score'] >= 65:
-            best_match['match_confidence'] = 'medium'
-        else:
-            best_match['match_confidence'] = 'low'
-        return best_match
-    
+            return best_match
+
+        # Tier 2: Close + reasonable name similarity
+        if dist < 50 and name_score >= 50:
+            best_match['match_confidence'] = 'high' if name_score >= 70 else 'medium'
+            return best_match
+
+        # Tier 3: Medium distance + good name similarity
+        if dist < 150 and name_score >= min_name_score:
+            best_match['match_confidence'] = 'medium' if name_score >= 80 else 'low'
+            return best_match
+
+        # Tier 4: Too far or names too different - no match
+
     return None
 
 
