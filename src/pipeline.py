@@ -13,6 +13,16 @@ Station resolution:
 - Modern IDs (UUIDs with dashes): Join directly to current_stations
 - Legacy IDs (integers): Join to crosswalk → then to current_stations
 - Ghost stations: Use legacy coordinates from crosswalk
+
+Demographics validity flags (added to output):
+- birth_year_valid: TRUE if birth_year is usable for analysis
+    - FALSE if 1969 default (casual riders 2018+), age <10, or age >100
+    - NULL for modern data (2020+) where birth_year doesn't exist
+- gender_valid: TRUE if gender is known (1=male, 2=female)
+    - FALSE if gender=0 (unknown)
+    - NULL for modern data (2020+) where gender doesn't exist
+- age_at_trip: Pre-calculated age at time of trip
+    - NULL if birth_year_valid is FALSE or NULL
 """
 
 import argparse
@@ -410,6 +420,30 @@ def process_file(
         bike_id,
         birth_year,
         gender,
+        -- Demographics validity flags
+        CASE
+            WHEN birth_year IS NULL THEN NULL  -- Not applicable (modern data)
+            WHEN birth_year = 1969
+                 AND member_casual = 'casual'
+                 AND EXTRACT(YEAR FROM started_at) >= 2018 THEN FALSE  -- Default value
+            WHEN (EXTRACT(YEAR FROM started_at) - birth_year) < 10 THEN FALSE  -- Too young
+            WHEN (EXTRACT(YEAR FROM started_at) - birth_year) > 100 THEN FALSE  -- Implausible
+            ELSE TRUE
+        END as birth_year_valid,
+        CASE
+            WHEN gender IS NULL THEN NULL  -- Not applicable (modern data)
+            WHEN gender IN (1, 2) THEN TRUE
+            ELSE FALSE  -- Unknown (0)
+        END as gender_valid,
+        CASE
+            WHEN birth_year IS NULL THEN NULL
+            WHEN birth_year = 1969
+                 AND member_casual = 'casual'
+                 AND EXTRACT(YEAR FROM started_at) >= 2018 THEN NULL
+            WHEN (EXTRACT(YEAR FROM started_at) - birth_year) < 10 THEN NULL
+            WHEN (EXTRACT(YEAR FROM started_at) - birth_year) > 100 THEN NULL
+            ELSE CAST(EXTRACT(YEAR FROM started_at) - birth_year AS INTEGER)
+        END as age_at_trip,
         '{csv_path.name}' as source_file,
         start_match_type,
         end_match_type

@@ -859,6 +859,7 @@ Successfully processed all 13 years of Citi Bike data:
 - **352 parquet files** in `data/processed/`
 - **11 GB** total size (compressed from ~40 GB raw CSV)
 - **122 log files** tracking all processing runs
+- **27 columns** per row (including 3 demographic validity flags added in Session 8)
 
 #### Sanity Checks Passed
 
@@ -924,4 +925,123 @@ con.execute('''
     GROUP BY 1 ORDER BY 2 DESC
     LIMIT 10
 ''').fetchall()
+```
+
+### 16. Demographics Data Quality Issues (Birth Year / Gender)
+
+**Problem discovered**: Legacy data (2013-2019) contains birth_year and gender fields with significant data quality issues.
+
+#### Issue 1: 1969 Default Birth Year
+
+Starting in 2018, casual riders without birth year data were assigned `1969` as a default:
+
+| Year | Type | % with 1969 | Interpretation |
+|------|------|-------------|----------------|
+| 2017 | casual | 1.4% | Natural occurrence |
+| 2017 | member | 1.9% | Natural occurrence |
+| 2018 | casual | **60.9%** | Default value |
+| 2018 | member | 3.1% | Natural occurrence |
+| 2019 | casual | **42.8%** | Default value |
+| 2019 | member | 2.7% | Natural occurrence |
+
+**Total affected**: 2.39M trips (2.6% of legacy data)
+
+**Detection pattern**: `birth_year = 1969 AND member_casual = 'casual' AND YEAR(started_at) >= 2018`
+
+#### Issue 2: Unknown Gender
+
+Gender field uses: 0=unknown, 1=male, 2=female
+
+| Year | Unknown (0) | Male (1) | Female (2) |
+|------|-------------|----------|------------|
+| 2013 | 16.1% | 64.1% | 19.7% |
+| 2014 | 9.8% | 69.8% | 20.4% |
+| 2015 | 13.2% | 66.6% | 20.2% |
+| 2018 | 8.4% | 68.2% | 23.4% |
+| 2019 | 7.6% | 68.3% | 24.1% |
+
+**Total affected**: 9.29M trips (10.2% of legacy data)
+
+#### Issue 3: Implausible Birth Years
+
+~38K trips have birth years making riders 100+ years old (e.g., 1885, 1900).
+
+| Birth Year | Implied Age | Trips | Assessment |
+|------------|-------------|-------|------------|
+| 1900 | 113-119 | ~17K | Junk data |
+| 1885-1912 | 100-134 | ~20K | Junk data |
+
+#### Summary of Data Quality Flags
+
+| Issue | Trips Affected | % of Legacy |
+|-------|---------------|-------------|
+| NULL birth_year | 6,168,397 | 6.8% |
+| 1969 default (casual) | 2,390,780 | 2.6% |
+| Unknown gender (0) | 9,292,456 | 10.2% |
+| Implausible age (>100) | 38,360 | 0.04% |
+
+#### Recommended Filters for Demographics Analysis
+
+```sql
+-- Clean birth year filter
+WHERE birth_year IS NOT NULL
+  AND NOT (birth_year = 1969 AND member_casual = 'casual' AND YEAR(started_at) >= 2018)
+  AND (YEAR(started_at) - birth_year) BETWEEN 16 AND 80
+
+-- Clean gender filter  
+WHERE gender IN (1, 2)
+```
+
+#### Usable Data After Filtering
+
+- **Birth year analysis**: ~75M trips (82% of legacy)
+- **Gender analysis**: ~82M trips (90% of legacy)
+- **Both demographics clean**: ~70M trips (77% of legacy)
+
+#### Pipeline Implementation (Session 8)
+
+Three new columns were added to the pipeline output to make demographics filtering easier:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `birth_year_valid` | BOOLEAN | TRUE if birth_year is usable for analysis |
+| `gender_valid` | BOOLEAN | TRUE if gender is known (1 or 2) |
+| `age_at_trip` | INTEGER | Pre-calculated age at time of trip |
+
+**Validation Logic:**
+
+```sql
+-- birth_year_valid = FALSE when:
+-- 1. birth_year = 1969 AND member_casual = 'casual' AND year >= 2018 (default value)
+-- 2. age < 10 (too young to ride)
+-- 3. age > 100 (implausible)
+
+-- gender_valid = FALSE when:
+-- gender = 0 (unknown)
+
+-- age_at_trip = NULL when:
+-- birth_year_valid is FALSE or NULL
+```
+
+**NULL Handling:**
+- Modern data (2020+) has no demographics → all three columns are NULL
+- This distinguishes "not applicable" (NULL) from "known bad" (FALSE)
+
+**Example Usage:**
+
+```sql
+-- Get clean demographics data
+SELECT age_at_trip, gender, COUNT(*) as trips
+FROM "data/processed/*2018*.parquet"
+WHERE birth_year_valid = TRUE AND gender_valid = TRUE
+GROUP BY 1, 2
+
+-- Get percentage of valid demographics by year
+SELECT
+    YEAR(started_at) as year,
+    AVG(CASE WHEN birth_year_valid THEN 1.0 ELSE 0.0 END) as pct_valid_birth_year,
+    AVG(CASE WHEN gender_valid THEN 1.0 ELSE 0.0 END) as pct_valid_gender
+FROM "data/processed/*.parquet"
+WHERE birth_year IS NOT NULL
+GROUP BY 1
 ```
