@@ -5,6 +5,11 @@ Main ETL pipeline for Citi Bike trip data.
 Reads raw CSVs, normalizes schemas, resolves stations via crosswalk,
 and outputs clean Parquet files.
 
+Supports both NYC and Jersey City (JC) systems:
+    python src/pipeline.py                  # NYC (default)
+    python src/pipeline.py --system nyc     # NYC explicitly
+    python src/pipeline.py --system jc      # Jersey City
+
 Schema normalization:
 - Legacy (2013-2020): tripduration, starttime, usertype, birth year, gender
 - Modern (2021+): ride_id, rideable_type, started_at, member_casual
@@ -68,6 +73,20 @@ REFERENCE_DIR = Path(__file__).parent.parent / "reference"
 DATA_DIR = Path(__file__).parent.parent / "data"
 LOGS_DIR = Path(__file__).parent.parent / "logs"
 
+# System-specific paths
+SYSTEM_PATHS = {
+    'nyc': {
+        'input': DATA_DIR / "raw_csvs",
+        'output': DATA_DIR / "processed",
+        'crosswalk': REFERENCE_DIR / "station_crosswalk.csv",
+    },
+    'jc': {
+        'input': DATA_DIR / "jc" / "raw_csvs",
+        'output': DATA_DIR / "jc" / "processed",
+        'crosswalk': REFERENCE_DIR / "station_crosswalk_jc.csv",
+    }
+}
+
 # Test/internal station patterns to filter out
 # These are depot locations, test kiosks, valet services, and internal operations stations
 TEST_STATION_PATTERNS = [
@@ -120,34 +139,55 @@ def detect_schema(csv_path: Path) -> str:
         return 'unknown'
 
 
-def load_reference_tables(con: duckdb.DuckDBPyConnection, ref_dir: Path):
-    """Load station reference tables into DuckDB."""
-    
+def load_reference_tables(con: duckdb.DuckDBPyConnection, ref_dir: Path, crosswalk_path: Path = None):
+    """Load station reference tables into DuckDB.
+
+    Args:
+        con: DuckDB connection
+        ref_dir: Directory containing reference files
+        crosswalk_path: Path to crosswalk CSV (optional, defaults to ref_dir/station_crosswalk.csv)
+    """
+
     # Current stations from GBFS
     stations_path = ref_dir / "current_stations.csv"
     if stations_path.exists():
         con.execute(f"""
-            CREATE OR REPLACE TABLE current_stations AS 
+            CREATE OR REPLACE TABLE current_stations AS
             SELECT * FROM read_csv_auto('{stations_path}')
         """)
         print(f"  Loaded current_stations: {con.execute('SELECT COUNT(*) FROM current_stations').fetchone()[0]} rows")
-    
-    # Station crosswalk
-    crosswalk_path = ref_dir / "station_crosswalk.csv"
+
+    # Station crosswalk (use provided path or default)
+    # Force legacy_id and modern_id to VARCHAR to support both integer and string station IDs
+    if crosswalk_path is None:
+        crosswalk_path = ref_dir / "station_crosswalk.csv"
     if crosswalk_path.exists():
         con.execute(f"""
-            CREATE OR REPLACE TABLE crosswalk AS 
-            SELECT * FROM read_csv_auto('{crosswalk_path}')
+            CREATE OR REPLACE TABLE crosswalk AS
+            SELECT
+                CAST(legacy_id AS VARCHAR) as legacy_id,
+                legacy_name,
+                legacy_lat,
+                legacy_lon,
+                trip_count,
+                CAST(modern_id AS VARCHAR) as modern_id,
+                modern_name,
+                match_score,
+                match_confidence,
+                match_distance_m
+            FROM read_csv_auto('{crosswalk_path}')
         """)
-        print(f"  Loaded crosswalk: {con.execute('SELECT COUNT(*) FROM crosswalk').fetchone()[0]} rows")
-    
+        print(f"  Loaded crosswalk ({crosswalk_path.name}): {con.execute('SELECT COUNT(*) FROM crosswalk').fetchone()[0]} rows")
+    else:
+        print(f"  ⚠ Crosswalk not found: {crosswalk_path}")
+
     # Manual overrides (merge into crosswalk)
     overrides_path = ref_dir / "manual_overrides.csv"
     if overrides_path.exists():
         override_count = con.execute(f"""
             SELECT COUNT(*) FROM read_csv_auto('{overrides_path}')
         """).fetchone()[0]
-        
+
         if override_count > 0:
             con.execute(f"""
                 CREATE OR REPLACE TABLE crosswalk AS
@@ -317,11 +357,22 @@ def process_file(
         SELECT {select_clause}
         FROM read_csv_auto('{csv_path}', {read_options})
     ),
-    -- Classify station IDs as modern (UUID) or legacy (integer)
+    -- Classify station IDs as modern (UUID or JC/HB prefix) or legacy (integer)
+    -- Modern IDs: contain dash (NYC UUIDs) OR start with JC/HB (Jersey City/Hoboken)
     classified AS (
         SELECT *,
-            CASE WHEN start_station_id_raw LIKE '%-%' THEN 'modern' ELSE 'legacy' END as start_id_type,
-            CASE WHEN end_station_id_raw LIKE '%-%' THEN 'modern' ELSE 'legacy' END as end_id_type
+            CASE
+                WHEN start_station_id_raw LIKE '%-%' THEN 'modern'
+                WHEN start_station_id_raw LIKE 'JC%' THEN 'modern'
+                WHEN start_station_id_raw LIKE 'HB%' THEN 'modern'
+                ELSE 'legacy'
+            END as start_id_type,
+            CASE
+                WHEN end_station_id_raw LIKE '%-%' THEN 'modern'
+                WHEN end_station_id_raw LIKE 'JC%' THEN 'modern'
+                WHEN end_station_id_raw LIKE 'HB%' THEN 'modern'
+                ELSE 'legacy'
+            END as end_id_type
         FROM raw
     ),
     -- Resolve start stations
@@ -565,10 +616,12 @@ def process_file(
 
 def main():
     parser = argparse.ArgumentParser(description="Process Citi Bike trip data")
-    parser.add_argument("--input-dir", type=Path, default=DATA_DIR / "raw_csvs",
-                        help="Directory with raw CSVs")
-    parser.add_argument("--output-dir", type=Path, default=DATA_DIR / "processed",
-                        help="Directory for output Parquet files")
+    parser.add_argument("--system", choices=['nyc', 'jc'], default='nyc',
+                        help="System to process: 'nyc' (default) or 'jc' (Jersey City)")
+    parser.add_argument("--input-dir", type=Path, default=None,
+                        help="Directory with raw CSVs (auto-detected based on --system)")
+    parser.add_argument("--output-dir", type=Path, default=None,
+                        help="Directory for output Parquet files (auto-detected based on --system)")
     parser.add_argument("--reference-dir", type=Path, default=REFERENCE_DIR,
                         help="Directory with reference tables")
     parser.add_argument("--limit", type=int, help="Process only first N files")
@@ -577,6 +630,16 @@ def main():
                         help="Reprocess files even if output already exists")
 
     args = parser.parse_args()
+
+    # Set default paths based on system
+    system_paths = SYSTEM_PATHS[args.system]
+    if args.input_dir is None:
+        args.input_dir = system_paths['input']
+    if args.output_dir is None:
+        args.output_dir = system_paths['output']
+    crosswalk_path = system_paths['crosswalk']
+
+    print(f"Processing {args.system.upper()} Citi Bike data")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     
@@ -600,7 +663,7 @@ def main():
     
     # Load reference tables
     print("\nLoading reference tables...")
-    load_reference_tables(con, args.reference_dir)
+    load_reference_tables(con, args.reference_dir, crosswalk_path)
     
     # Process files
     all_stats = []
@@ -637,9 +700,10 @@ def main():
     
     # Save run log
     processed = len(csv_files) - skipped
-    log_path = LOGS_DIR / f"pipeline_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    log_path = LOGS_DIR / f"pipeline_run_{args.system}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     log_data = {
         'timestamp': datetime.now().isoformat(),
+        'system': args.system,
         'files_total': len(csv_files),
         'files_processed': processed,
         'files_skipped': skipped,
@@ -676,7 +740,7 @@ def main():
     print_validation_report(validation_results)
 
     # Save validation results to log
-    validation_log_path = LOGS_DIR / f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    validation_log_path = LOGS_DIR / f"validation_{args.system}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     with open(validation_log_path, 'w') as f:
         json.dump(validation_results, f, indent=2)
 

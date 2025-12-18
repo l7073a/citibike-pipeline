@@ -2,17 +2,26 @@
 data/raw_zips/*
 data/raw_csvs/*
 data/processed/*
+data/geo/*
+data/jc/*
+data/weather/*
+data/mta/*
+data/*.csv
 
 # But keep directory structure
 !data/raw_zips/.gitkeep
 !data/raw_csvs/.gitkeep
 !data/processed/.gitkeep
+!data/geo/.gitkeep
+!data/jc/.gitkeep
+!data/weather/.gitkeep
 
-# Logs (exclude bulk JSON logs, keep key artifacts)
+# Logs (exclude generated outputs - can be regenerated from notebooks)
 logs/*.json
 logs/*.csv
+logs/*.png
+logs/*.html
 !logs/citibike_analysis.png
-!logs/monthly_trips.json
 
 # Python
 __pycache__/

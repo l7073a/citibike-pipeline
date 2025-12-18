@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Build a crosswalk mapping legacy station IDs (integers) to modern UUIDs.
+Build a crosswalk mapping legacy station IDs to modern station IDs.
+
+Supports both NYC and Jersey City (JC) systems:
+- NYC: Legacy integer IDs (519) → Modern decimal IDs (5636.13) or UUIDs
+- JC: Legacy integer IDs (3185) → Modern string IDs (JC003, HB602)
 
 Since there is NO common key between the two eras, we must match by:
 1. Spatial proximity (within 150m)
@@ -11,6 +15,11 @@ This script:
 2. Loads current stations from GBFS API
 3. For each legacy station, finds the best matching modern station
 4. Outputs a crosswalk CSV that gets version-controlled
+
+Usage:
+    python src/build_crosswalk.py                  # NYC (default)
+    python src/build_crosswalk.py --system nyc    # NYC explicitly
+    python src/build_crosswalk.py --system jc     # Jersey City
 
 IMPORTANT: Review the output! Some matches will need manual correction.
 """
@@ -49,18 +58,43 @@ def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
     return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def extract_legacy_stations(csv_dir: Path) -> list[dict]:
+def extract_legacy_stations(csv_dir: Path, system: str = 'nyc') -> list[dict]:
     """
     Extract unique legacy stations from raw CSVs using DuckDB.
     Uses MEDIAN for coordinates to filter GPS noise.
+
+    Args:
+        csv_dir: Directory containing CSV files
+        system: 'nyc' or 'jc' - determines coordinate bounds and ID filtering
     """
-    print("Scanning CSVs for legacy stations...")
-    
+    print(f"Scanning CSVs for legacy stations ({system.upper()})...")
+
     con = duckdb.connect()
-    
+
+    # System-specific settings
+    if system == 'jc':
+        # JC/Hoboken bounds (west of NYC, across Hudson)
+        lat_min, lat_max = 40.68, 40.78
+        lon_min, lon_max = -74.12, -74.01
+        # JC legacy IDs are integers (3185, 3203) but NOT JC003/HB602 style
+        # We want to match legacy integer IDs to modern JCxxx IDs
+        id_filter = """
+            -- Legacy JC IDs are pure integers (3185, 3203, etc.)
+            station_id ~ '^[0-9]+$'
+            AND CAST(station_id AS INTEGER) >= 3000
+            AND CAST(station_id AS INTEGER) < 5000
+        """
+    else:  # NYC
+        lat_min, lat_max = 40.4, 41.0
+        lon_min, lon_max = -74.3, -73.7
+        id_filter = """
+            station_id NOT LIKE '%-%'  -- Exclude UUIDs (modern IDs contain dashes)
+            AND LENGTH(station_id) < 10    -- Legacy IDs are short integers
+        """
+
     # DuckDB query that:
     # 1. Reads all CSVs with union_by_name (handles schema differences)
-    # 2. Filters to legacy IDs only (integers, not UUIDs with dashes)
+    # 2. Filters to legacy IDs only
     # 3. Groups by station ID, taking MODE of name and MEDIAN of coords
     query = f"""
     WITH raw AS (
@@ -81,7 +115,7 @@ def extract_legacy_stations(csv_dir: Path) -> list[dict]:
                 "start station longitude",
                 start_lng
             ) as lon
-        FROM read_csv_auto('{csv_dir}/*.csv', union_by_name=True, ignore_errors=True)
+        FROM read_csv_auto('{csv_dir}/*.csv', union_by_name=True, ignore_errors=true)
         WHERE station_id IS NOT NULL
     ),
     cleaned AS (
@@ -93,23 +127,22 @@ def extract_legacy_stations(csv_dir: Path) -> list[dict]:
             CAST(lon AS DOUBLE) as lon
         FROM raw
         WHERE lat IS NOT NULL AND lon IS NOT NULL
-          AND lat BETWEEN 40.4 AND 41.0  -- NYC bounds
-          AND lon BETWEEN -74.3 AND -73.7
+          AND lat BETWEEN {lat_min} AND {lat_max}
+          AND lon BETWEEN {lon_min} AND {lon_max}
     )
-    SELECT 
+    SELECT
         station_id as legacy_id,
         MODE(station_name) as legacy_name,
         MEDIAN(lat) as legacy_lat,
         MEDIAN(lon) as legacy_lon,
         COUNT(*) as trip_count
     FROM cleaned
-    WHERE station_id NOT LIKE '%-%'  -- Exclude UUIDs (modern IDs contain dashes)
-      AND LENGTH(station_id) < 10    -- Legacy IDs are short integers
+    WHERE {id_filter}
     GROUP BY station_id
     HAVING COUNT(*) >= 10  -- Filter out rare/erroneous IDs
     ORDER BY trip_count DESC
     """
-    
+
     try:
         result = con.execute(query).fetchall()
         columns = ['legacy_id', 'legacy_name', 'legacy_lat', 'legacy_lon', 'trip_count']
@@ -284,13 +317,16 @@ def build_crosswalk(
     return crosswalk, ghosts
 
 
-def save_outputs(crosswalk: list[dict], ghosts: list[dict]):
+def save_outputs(crosswalk: list[dict], ghosts: list[dict], system: str = 'nyc'):
     """Save crosswalk CSV and audit log."""
     REFERENCE_DIR.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Save crosswalk CSV
-    csv_path = REFERENCE_DIR / "station_crosswalk.csv"
+
+    # System-specific output filename
+    if system == 'jc':
+        csv_path = REFERENCE_DIR / "station_crosswalk_jc.csv"
+    else:
+        csv_path = REFERENCE_DIR / "station_crosswalk.csv"
     fieldnames = [
         'legacy_id', 'legacy_name', 'legacy_lat', 'legacy_lon', 'trip_count',
         'modern_id', 'modern_name', 'match_score', 'match_confidence', 'match_distance_m'
@@ -318,7 +354,8 @@ def save_outputs(crosswalk: list[dict], ghosts: list[dict]):
     low_conf = sum(1 for r in crosswalk if r['match_confidence'] == 'low')
     
     # Save audit log
-    log_path = LOGS_DIR / f"crosswalk_build_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    log_suffix = f"_{system}" if system != 'nyc' else ""
+    log_path = LOGS_DIR / f"crosswalk_build{log_suffix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     log_data = {
         'timestamp': datetime.now().isoformat(),
         'legacy_stations_found': len(crosswalk),
@@ -359,38 +396,53 @@ def save_outputs(crosswalk: list[dict], ghosts: list[dict]):
 
 def main():
     parser = argparse.ArgumentParser(description="Build station crosswalk")
-    parser.add_argument("--csv-dir", type=Path, default=DATA_DIR / "raw_csvs",
-                        help="Directory with raw CSVs")
+    parser.add_argument("--system", choices=['nyc', 'jc'], default='nyc',
+                        help="System to build crosswalk for: 'nyc' (default) or 'jc' (Jersey City)")
+    parser.add_argument("--csv-dir", type=Path, default=None,
+                        help="Directory with raw CSVs (auto-detected based on --system)")
     parser.add_argument("--stations", type=Path, default=REFERENCE_DIR / "current_stations.csv",
                         help="Current stations CSV from GBFS")
-    
+
     args = parser.parse_args()
-    
+
+    # Set default CSV directory based on system
+    if args.csv_dir is None:
+        if args.system == 'jc':
+            args.csv_dir = DATA_DIR / "jc" / "raw_csvs"
+        else:
+            args.csv_dir = DATA_DIR / "raw_csvs"
+
+    print(f"Building crosswalk for {args.system.upper()} system")
+
     if not args.stations.exists():
         print(f"✗ Current stations not found: {args.stations}")
         print("  Run: python src/fetch_stations.py")
         exit(1)
-    
+
     csv_files = list(args.csv_dir.glob("*.csv"))
     if not csv_files:
         print(f"✗ No CSV files found in {args.csv_dir}")
-        print("  Run: python src/download.py --year 2014")
-        print("  Then: python src/ingest.py")
+        if args.system == 'jc':
+            print("  Run: python src/download_jc.py --all")
+            print("  Then: python src/ingest.py --system jc")
+        else:
+            print("  Run: python src/download.py --year 2014")
+            print("  Then: python src/ingest.py")
         exit(1)
-    
+
     print(f"Found {len(csv_files)} CSV files in {args.csv_dir}")
-    
+
     # Extract legacy stations from raw data
-    legacy_stations = extract_legacy_stations(args.csv_dir)
-    
+    legacy_stations = extract_legacy_stations(args.csv_dir, system=args.system)
+
     # Load modern stations from GBFS
     modern_stations = load_modern_stations(args.stations)
-    
+
     # Build crosswalk
     crosswalk, ghosts = build_crosswalk(legacy_stations, modern_stations)
-    
+
     # Save outputs
-    save_outputs(crosswalk, ghosts)
+    save_outputs(crosswalk, ghosts, system=args.system)
 
 
 if __name__ == "__main__":

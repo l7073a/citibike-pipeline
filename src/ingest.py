@@ -5,6 +5,11 @@ Extract Citi Bike zip files, handling:
 - __MACOSX folders
 - Multiple CSVs per archive (for months with >1M trips)
 - Duplicate filenames across archives
+
+Supports both NYC and Jersey City (JC) systems:
+    python src/ingest.py                  # NYC (default)
+    python src/ingest.py --system nyc     # NYC explicitly
+    python src/ingest.py --system jc      # Jersey City
 """
 
 import argparse
@@ -15,9 +20,20 @@ from datetime import datetime
 from pathlib import Path
 import hashlib
 
-SOURCE_DIR = Path(__file__).parent.parent / "data" / "raw_zips"
-DEST_DIR = Path(__file__).parent.parent / "data" / "raw_csvs"
+DATA_DIR = Path(__file__).parent.parent / "data"
 LOGS_DIR = Path(__file__).parent.parent / "logs"
+
+# System-specific paths
+SYSTEM_PATHS = {
+    'nyc': {
+        'source': DATA_DIR / "raw_zips",
+        'dest': DATA_DIR / "raw_csvs",
+    },
+    'jc': {
+        'source': DATA_DIR / "jc" / "raw_zips",
+        'dest': DATA_DIR / "jc" / "raw_csvs",
+    }
+}
 
 
 def hash_file(path: Path) -> str:
@@ -117,10 +133,23 @@ def extract_zip(zip_path: Path, dest_dir: Path, manifest: list) -> int:
 
 def main():
     parser = argparse.ArgumentParser(description="Extract Citi Bike zip files")
-    parser.add_argument("--source", type=Path, default=SOURCE_DIR, help="Source directory with zips")
-    parser.add_argument("--dest", type=Path, default=DEST_DIR, help="Destination directory for CSVs")
-    
+    parser.add_argument("--system", choices=['nyc', 'jc'], default='nyc',
+                        help="System to process: 'nyc' (default) or 'jc' (Jersey City)")
+    parser.add_argument("--source", type=Path, default=None,
+                        help="Source directory with zips (auto-detected based on --system)")
+    parser.add_argument("--dest", type=Path, default=None,
+                        help="Destination directory for CSVs (auto-detected based on --system)")
+
     args = parser.parse_args()
+
+    # Set default paths based on system
+    system_paths = SYSTEM_PATHS[args.system]
+    if args.source is None:
+        args.source = system_paths['source']
+    if args.dest is None:
+        args.dest = system_paths['dest']
+
+    print(f"Processing {args.system.upper()} Citi Bike data")
     
     args.dest.mkdir(parents=True, exist_ok=True)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -151,9 +180,10 @@ def main():
         json.dump(manifest, f, indent=2)
     
     # Save extraction log
-    log_path = LOGS_DIR / f"ingest_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    log_path = LOGS_DIR / f"ingest_{args.system}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     log_data = {
         'timestamp': datetime.now().isoformat(),
+        'system': args.system,
         'source_dir': str(args.source),
         'dest_dir': str(args.dest),
         'zip_files_processed': len(zip_files),

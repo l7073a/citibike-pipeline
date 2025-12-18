@@ -1,8 +1,12 @@
-# Citi Bike Data Pipeline Dependencies
-duckdb>=0.9.0
-pandas>=2.0.0
-requests>=2.28.0
-rapidfuzz>=3.0.0
-scipy>=1.10.0
-tqdm>=4.65.0
-pyarrow>=14.0.0  # For parquet support
+contextily==1.6.2
+duckdb==1.4.3
+holidays==0.83
+matplotlib==3.9.4
+numpy==2.0.2
+pandas==2.3.3
+pyarrow==21.0.0
+requests==2.32.5
+scikit-learn==1.6.1
+seaborn==0.13.2
+statsmodels==0.14.6
+jupyter==1.1.1
